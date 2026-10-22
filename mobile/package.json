@@ -1,0 +1,26 @@
+{
+  "name": "kulku-mobile",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Kulku – iOS- ja Android-sovellus (Capacitor)",
+  "scripts": {
+    "prepare-web": "node scripts/prepare.mjs",
+    "patch-native": "node scripts/patch-native.mjs"
+  },
+  "dependencies": {
+    "@capacitor/android": "^7.0.0",
+    "@capacitor/core": "^7.0.0",
+    "@capacitor/geolocation": "^7.0.0",
+    "@capacitor/ios": "^7.0.0",
+    "@capacitor/local-notifications": "^7.0.0",
+    "@capacitor/splash-screen": "^7.0.0",
+    "@capacitor/status-bar": "^7.0.0"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^7.0.0",
+    "sharp": "^0.33.5"
+  },
+  "engines": { "node": ">=20" }
+}
