@@ -1,0 +1,120 @@
+# Kulku – iOS- ja Android-käännökset Codemagicissa (ei vaadi Macia)
+#
+# Ennen ensimmäistä käännöstä Codemagicissa:
+#  1. Team settings -> Integrations -> Developer Portal: lisää App Store Connect API -avain nimellä "Kulku ASC"
+#  2. Team settings -> Code signing identities -> Android keystores: lataa kulku-upload.jks, reference name "kulku_keystore"
+#  3. Vaihda alla APP_STORE_APPLE_ID sovelluksen Apple ID:ksi (App Store Connect -> App Information)
+# Android: ensimmäinen AAB ladataan Google Play Consoleen käsin (Codemagicin Artifacts-osiosta).
+# Ohjeet: JULKAISU.md
+
+definitions:
+  scripts:
+    - &install
+      name: Asenna riippuvuudet
+      script: |
+        cd mobile
+        npm install
+    - &prepare_web
+      name: Rakenna web-osa ja kuvakkeet
+      script: |
+        cd mobile
+        node scripts/prepare.mjs
+
+workflows:
+  android-release:
+    name: Kulku Android (Google Play)
+    instance_type: linux_x2
+    max_build_duration: 45
+    environment:
+      node: 20
+      java: 21
+      android_signing:
+        - kulku_keystore
+      vars:
+        APP_VERSION: "1.0.0"
+    scripts:
+      - *install
+      - *prepare_web
+      - name: Luo Android-projekti
+        script: |
+          cd mobile
+          [ -d android ] || npx cap add android
+          npx @capacitor/assets generate --android --iconBackgroundColor '#0D1424' --iconBackgroundColorDark '#0D1424' --splashBackgroundColor '#0D1424' --splashBackgroundColorDark '#0D1424'
+          BUILD_NUMBER=$((PROJECT_BUILD_NUMBER + 1)) node scripts/patch-native.mjs
+          npx cap sync android
+      - name: Allekirjoitusasetukset
+        script: |
+          cat >> "$CM_BUILD_DIR/mobile/android/app/build.gradle" <<'EOF'
+
+          android {
+              signingConfigs {
+                  release {
+                      storeFile file(System.getenv("CM_KEYSTORE_PATH"))
+                      storePassword System.getenv("CM_KEYSTORE_PASSWORD")
+                      keyAlias System.getenv("CM_KEY_ALIAS")
+                      keyPassword System.getenv("CM_KEY_PASSWORD")
+                  }
+              }
+              buildTypes {
+                  release {
+                      signingConfig signingConfigs.release
+                  }
+              }
+          }
+          EOF
+      - name: Käännä AAB
+        script: |
+          cd mobile/android
+          ./gradlew bundleRelease
+    artifacts:
+      - mobile/android/app/build/outputs/**/*.aab
+
+  ios-release:
+    name: Kulku iOS (App Store)
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    integrations:
+      app_store_connect: Kulku ASC
+    environment:
+      node: 20
+      xcode: latest
+      cocoapods: default
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: app.kulku
+      vars:
+        APP_VERSION: "1.0.0"
+        APP_STORE_APPLE_ID: "0000000000"
+    scripts:
+      - *install
+      - *prepare_web
+      - name: Luo iOS-projekti
+        script: |
+          cd mobile
+          [ -d ios ] || npx cap add ios
+          npx @capacitor/assets generate --ios --iconBackgroundColor '#0D1424' --splashBackgroundColor '#0D1424' --splashBackgroundColorDark '#0D1424'
+          node scripts/patch-native.mjs
+          npx cap sync ios
+      - name: Allekirjoitus
+        script: |
+          xcode-project use-profiles
+      - name: Versionumero
+        script: |
+          cd mobile/ios/App
+          LATEST=$(app-store-connect get-latest-app-store-build-number "$APP_STORE_APPLE_ID" 2>/dev/null || echo 0)
+          agvtool new-version -all $((LATEST + 1))
+          agvtool new-marketing-version "$APP_VERSION"
+      - name: Käännä IPA
+        script: |
+          cd mobile/ios/App
+          if [ -d App.xcworkspace ]; then
+            xcode-project build-ipa --workspace App.xcworkspace --scheme App
+          else
+            xcode-project build-ipa --project App.xcodeproj --scheme App
+          fi
+    artifacts:
+      - build/ios/ipa/*.ipa
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
