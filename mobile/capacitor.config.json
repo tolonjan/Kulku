@@ -1,0 +1,23 @@
+{
+  "appId": "app.kulku",
+  "appName": "Kulku",
+  "webDir": "www",
+  "backgroundColor": "#0D1424",
+  "ios": {
+    "contentInset": "never"
+  },
+  "android": {
+    "backgroundColor": "#0D1424"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 900,
+      "launchAutoHide": true,
+      "backgroundColor": "#0D1424",
+      "showSpinner": false
+    },
+    "LocalNotifications": {
+      "iconColor": "#2FBF7F"
+    }
+  }
+}
