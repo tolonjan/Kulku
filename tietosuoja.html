@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="fi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kulku – tietosuojaseloste</title>
+<style>
+:root{--bg:#F1F4F3;--fg:#111C1A;--muted:#5E6E6A;--line:#DCE3E1}
+@media (prefers-color-scheme:dark){:root{--bg:#0C1311;--fg:#E7EEEC;--muted:#93A4A0;--line:#25322F}}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif;padding:32px max(16px,env(safe-area-inset-left,0px)) 64px}
+main{max-width:680px;margin:0 auto}
+h1{font-size:30px;line-height:1.2;margin:0 0 4px}
+h2{font-size:19px;margin:32px 0 6px}
+p,li{color:var(--fg)}
+.muted{color:var(--muted);font-size:14px}
+hr{border:0;border-top:1px solid var(--line);margin:40px 0}
+a{color:inherit}
+</style>
+</head>
+<body>
+<main>
+<h1>Tietosuojaseloste</h1>
+<p class="muted">Kulku-sovellus ja kulku.app · Päivitetty 22.10.2026</p>
+
+<h2>Lyhyesti</h2>
+<p>Kulku ei kerää, tallenna eikä myy henkilötietojasi. Sovelluksessa ei ole käyttäjätiliä, mainoksia eikä käyttäjien seurantaa.</p>
+
+<h2>Sijainti</h2>
+<p>Jos sallit sijainnin, Kulku käyttää sitä kerran valitakseen lähimmän kaupungin. Sijainti käsitellään vain laitteellasi. Sitä ei lähetetä palvelimelle eikä tallenneta. Voit perua luvan milloin tahansa laitteen asetuksista.</p>
+
+<h2>Ilmoitukset</h2>
+<p>Muistutukset ovat laitteen omia paikallisia ilmoituksia. Ne ajastetaan puhelimessa, eikä niitä varten lähetetä tietoja palvelimelle.</p>
+
+<h2>Laitteelle tallennettavat tiedot</h2>
+<p>Valitsemasi kaupunki, suosikkilähdöt ja viimeksi haetut aikataulut (offline-käyttöä varten) tallennetaan vain laitteesi muistiin. Ne poistuvat, kun poistat sovelluksen tai tyhjennät selaimen tiedot.</p>
+
+<h2>Aikataulutietojen haku</h2>
+<p>Kulku hakee aikataulut julkisista rajapinnoista: Fintrafficin Digitraffic (junat ja laivat), Digitransit (bussit) ja Finavia (lennot). Bussi- ja lentotiedot kulkevat Kulkun välipalvelimen kautta, jota ylläpidetään Vercel-palvelussa. Palveluntarjoajat voivat teknisistä syistä käsitellä pyynnön tekevän laitteen IP-osoitetta omien käytäntöjensä mukaisesti. Kulku ei itse tallenna näitä tietoja.</p>
+
+<h2>Lipunosto</h2>
+<p>Kulku ei myy lippuja. Lipunhaku-painike avaa liikennöitsijän oman verkkosivun, jonka tietosuojakäytäntöjä sovelletaan siellä.</p>
+
+<h2>Rekisterinpitäjä ja yhteystiedot</h2>
+<p>Janne Tolonen<br>Sähköposti: <span>[YHTEYSSÄHKÖPOSTI]</span></p>
+
+<hr>
+
+<h1>Privacy Policy</h1>
+<p class="muted">Kulku app and kulku.app · Updated 22 October 2026</p>
+<p>Kulku does not collect, store or sell personal data. There are no user accounts, ads or tracking.</p>
+<p><b>Location:</b> if you allow it, Kulku uses your location once, on your device, to pick the nearest city. It is never sent to a server or stored.</p>
+<p><b>Notifications:</b> reminders are local notifications scheduled on your device.</p>
+<p><b>Stored on device:</b> your selected city, favourite departures and the most recently fetched timetables (for offline use) are kept only on your device.</p>
+<p><b>Timetable data:</b> fetched from public APIs (Fintraffic Digitraffic, Digitransit, Finavia). Bus and flight requests pass through Kulku's proxy hosted on Vercel. Providers may process the requesting device's IP address for technical reasons under their own policies.</p>
+<p><b>Contact:</b> Janne Tolonen, [CONTACT EMAIL]</p>
+</main>
+</body>
+</html>
