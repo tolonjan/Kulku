@@ -1,0 +1,727 @@
+<title>Kulku</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Crect%20width%3D%22100%22%20height%3D%22100%22%20rx%3D%2224%22%20fill%3D%22%230D1424%22/%3E%3Cpath%20d%3D%22M58%2038%20V15%22%20stroke%3D%22%232FBF7F%22%20stroke-width%3D%2212%22%20stroke-linecap%3D%22round%22%20fill%3D%22none%22%20transform%3D%22rotate%280%2050%2050%29%22%20/%3E%3Cpath%20d%3D%22M58%2038%20V15%22%20stroke%3D%22%233D7DF0%22%20stroke-width%3D%2212%22%20stroke-linecap%3D%22round%22%20fill%3D%22none%22%20transform%3D%22rotate%2890%2050%2050%29%22%20/%3E%3Cpath%20d%3D%22M58%2038%20V15%22%20stroke%3D%22%23F07F3C%22%20stroke-width%3D%2212%22%20stroke-linecap%3D%22round%22%20fill%3D%22none%22%20transform%3D%22rotate%28180%2050%2050%29%22%20/%3E%3Cpath%20d%3D%22M58%2038%20V15%22%20stroke%3D%22%239B5BF0%22%20stroke-width%3D%2212%22%20stroke-linecap%3D%22round%22%20fill%3D%22none%22%20transform%3D%22rotate%28270%2050%2050%29%22%20/%3E%3Ccircle%20cx%3D%2250%22%20cy%3D%2250%22%20r%3D%227.5%22%20fill%3D%22%23fff%22/%3E%3C/svg%3E">
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Overpass:wght@400;600;700;800&family=Overpass+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: phone-first single column (max 560px); sticky search, city hero, destination carousel, day-grouped departure cards, bottom sheets for city / ticket / settings */
+:root{
+  --bg:#F1F4F3; --surface:#FFFFFF; --ink:#111C1A; --muted:#5E6E6A; --line:#DCE3E1; --soft:#E6ECEA;
+  --train:#0B8A52; --bus:#C4581C; --ship:#1F5DBD; --flight:#7B3FC4; --focus:#1F5DBD;
+  --ok:#0B8A52; --warn:#A86A10; --crit:#C42B2B;
+  --shadow:0 1px 2px rgba(17,28,26,.06),0 6px 20px rgba(17,28,26,.06);
+  --f-display:"Overpass","Segoe UI",system-ui,sans-serif;
+  --f-mono:"Overpass Mono",ui-monospace,"SF Mono",Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0C1311; --surface:#151E1C; --ink:#E7EEEC; --muted:#93A4A0; --line:#25322F; --soft:#1C2724;
+  --train:#43C98B; --bus:#F28F52; --ship:#78AAFF; --flight:#BE93FF; --focus:#78AAFF; --ok:#43C98B; --warn:#E3A945; --crit:#FF6B6B;
+  --shadow:0 1px 2px rgba(0,0,0,.4); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0C1311; --surface:#151E1C; --ink:#E7EEEC; --muted:#93A4A0; --line:#25322F; --soft:#1C2724;
+  --train:#43C98B; --bus:#F28F52; --ship:#78AAFF; --flight:#BE93FF; --focus:#78AAFF; --ok:#43C98B; --warn:#E3A945; --crit:#FF6B6B;
+  --shadow:0 1px 2px rgba(0,0,0,.4); color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-display);font-size:15px;line-height:1.4;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:10px 48px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--bg)}
+.app{max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+button{font:inherit;color:inherit}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.ico{width:18px;height:18px;flex:none}
+.m-train{color:var(--train)}.m-bus{color:var(--bus)}.m-ship{color:var(--ship)}.m-flight{color:var(--flight)}
+
+/* top */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);padding-block:8px 10px;display:flex;flex-direction:column;gap:10px}
+.toprow{display:flex;align-items:center;justify-content:space-between}
+.word{font-weight:800;font-size:21px;letter-spacing:-.03em;display:flex;align-items:center;gap:6px}
+.word i{width:9px;height:9px;border-radius:50%;background:var(--train);box-shadow:12px 0 0 var(--bus),24px 0 0 var(--ship);margin-right:26px}
+.iconbtn{width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;cursor:pointer}
+.iconbtn.spin svg{animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.tools{display:flex;gap:8px}
+.search{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:0 14px;height:46px;box-shadow:var(--shadow)}
+.search input{flex:1;min-width:0;border:0;background:transparent;font:inherit;font-size:16px;color:var(--ink);outline:none}
+.search input::placeholder{color:var(--muted)}
+.search .x{border:0;background:var(--soft);border-radius:50%;width:24px;height:24px;cursor:pointer;color:var(--muted)}
+
+/* hero */
+.hero{position:relative;border-radius:22px;overflow:hidden;color:#fff;padding:20px 20px 18px;min-height:270px;display:flex;flex-direction:column;justify-content:space-between;gap:18px;isolation:isolate}
+.hero::before{content:"";position:absolute;inset:0;z-index:-2;background:var(--hero)}
+.hero::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+  background:linear-gradient(90deg,rgba(0,0,0,.38),rgba(0,0,0,.08) 55%,transparent),linear-gradient(0deg,rgba(0,0,0,.35),transparent 45%)}
+.hero canvas{position:absolute;inset:0;width:100%;height:100%;z-index:-1;display:block}
+.hero h1,.hero .clock{text-shadow:0 1px 12px rgba(0,0,0,.35)}
+.hero .code{position:absolute;left:20px;bottom:76px;font-family:var(--f-mono);font-weight:700;font-size:11px;letter-spacing:.14em;opacity:.7}
+.hero .clock{font-family:var(--f-mono);font-size:13px;opacity:.85}
+.hero h1{margin:4px 0 0;font-size:clamp(34px,9vw,46px);font-weight:800;letter-spacing:-.02em;line-height:1;text-wrap:balance}
+.citypill{align-self:flex-start;display:inline-flex;align-items:center;gap:8px;border:0;cursor:pointer;background:rgba(255,255,255,.18);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:#fff;border-radius:999px;padding:8px 14px 8px 12px;font-weight:700}
+.citypill small{font-family:var(--f-mono);opacity:.75;font-weight:500}
+.stats{display:flex;flex-wrap:wrap;gap:6px}
+.stat{display:inline-flex;align-items:center;gap:6px;background:rgba(8,14,13,.5);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);border-radius:999px;padding:5px 10px;font-size:13px;font-weight:600}
+.stat{padding:4px 11px 4px 4px;gap:7px}
+.stat .sic{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;color:#fff}
+.stat .sic .ico{width:15px;height:15px}
+.sic-train{background:#0B8A52}.sic-bus{background:#D0611F}.sic-ship{background:#2E6BD1}.sic-flight{background:#8448D0}
+.stat b{font-family:var(--f-mono)}
+.stat em{font-style:normal;font-weight:400;opacity:.75}
+
+/* sections */
+h2{margin:0;font-size:21px;font-weight:800;letter-spacing:-.01em;text-wrap:balance}
+.sec{display:flex;flex-direction:column;gap:12px}
+.sechead{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.count{font-family:var(--f-mono);color:var(--muted);font-size:13px}
+
+/* carousel */
+.rail{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:4px;margin-inline:-4px;padding-inline:4px;scrollbar-width:none}
+.rail::-webkit-scrollbar{display:none}
+.dest{scroll-snap-align:start;flex:0 0 152px;height:150px;border:0;border-radius:18px;padding:14px;color:#fff;text-align:left;cursor:pointer;display:flex;flex-direction:column;justify-content:space-between;background:var(--card);position:relative;overflow:hidden}
+.dest::after{content:"";position:absolute;inset:auto -30% -40% auto;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.12)}
+.dest[aria-pressed="true"]{outline:3px solid var(--ink);outline-offset:2px}
+.dest .nm{font-weight:800;font-size:18px;line-height:1.1;overflow-wrap:anywhere}
+.dest .md{display:flex;gap:4px;opacity:.9}
+.dest .md .ico{width:15px;height:15px}
+.dest .nx{font-size:11.5px;opacity:.8}
+.dest .nt{font-family:var(--f-mono);font-weight:700;font-size:22px;line-height:1}
+.dest .cn{position:absolute;right:12px;top:14px;font-size:11px;opacity:.85;background:rgba(0,0,0,.2);border-radius:999px;padding:2px 8px}
+
+/* controls */
+.controls{display:flex;flex-direction:column;gap:10px}
+.scroller{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.scroller::-webkit-scrollbar{display:none}
+.pill{flex:none;display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:8px 14px;font-weight:600;font-size:14px;cursor:pointer;color:var(--muted);white-space:nowrap}
+.pill[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--surface)}
+.pill[aria-pressed="true"] .ico{color:var(--surface)}
+.pill .n{font-family:var(--f-mono);font-size:12px;opacity:.7}
+.seg{display:inline-flex;background:var(--soft);border-radius:12px;padding:3px;gap:2px}
+.seg button{border:0;background:transparent;border-radius:9px;padding:6px 12px;font-weight:600;font-size:13.5px;color:var(--muted);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+input[type=date]{font:inherit;font-size:14px;padding:7px 10px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+
+/* list */
+.day{display:flex;flex-direction:column;gap:2px;padding-left:12px;border-left:3px solid var(--ship);margin-top:4px}
+.day b{font-size:16px}
+.day span{font-size:13px;color:var(--muted)}
+.list{display:flex;flex-direction:column;gap:10px}
+.card{display:grid;grid-template-columns:76px minmax(0,1fr) auto;grid-template-areas:"t d s" "f f f";gap:4px 12px;align-items:center;text-align:left;
+  background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:14px 16px 12px;cursor:pointer;box-shadow:var(--shadow);width:100%}
+.card:hover{border-color:var(--muted)}
+.card.gone{opacity:.55}
+.c-time{grid-area:t;display:flex;flex-direction:column}
+.tm{font-family:var(--f-mono);font-weight:700;font-size:22px;line-height:1.1;font-variant-numeric:tabular-nums}
+.tm.late{color:var(--warn)}
+.old{font-family:var(--f-mono);font-size:12px;color:var(--muted);text-decoration:line-through}
+.ln{font-family:var(--f-mono);font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.c-main{grid-area:d;min-width:0}
+.c-dest{display:flex;align-items:center;gap:8px;font-weight:700;font-size:17px;min-width:0}
+.c-dest span{overflow-wrap:anywhere}
+.c-sub{font-size:12.5px;color:var(--muted);margin-left:26px}
+.c-side{grid-area:s;text-align:right;font-size:12.5px;color:var(--muted)}
+.c-side b{display:block;color:var(--ink);font-size:14px}
+.c-foot{grid-area:f;display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--line);margin-top:8px;padding-top:8px;font-size:12.5px;color:var(--muted)}
+.status{font-weight:700;display:inline-flex;align-items:center;gap:6px}
+.status::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.st-ok{color:var(--ok)}.st-warn{color:var(--warn)}.st-crit{color:var(--crit)}.st-mut{color:var(--muted)}
+.card.cx .c-dest span{text-decoration:line-through}
+.empty{background:var(--surface);border:1px dashed var(--line);border-radius:18px;padding:28px 18px;text-align:center;color:var(--muted)}
+.more{align-self:center;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:9px 18px;font-weight:600;cursor:pointer}
+.banner{background:var(--soft);border-radius:14px;padding:10px 14px;font-size:13px;color:var(--muted)}
+.banner b{color:var(--ink)}
+footer{font-size:12px;color:var(--muted);line-height:1.6;text-align:center}
+
+/* sheet */
+.scrim{position:fixed;inset:0;z-index:40;background:rgba(5,10,9,.45);display:flex;align-items:flex-end;justify-content:center}
+.sheet{width:100%;max-width:560px;max-height:88vh;overflow:auto;background:var(--bg);border-radius:22px 22px 0 0;
+  padding:8px max(16px,env(safe-area-inset-right,0px)) calc(20px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:14px}
+@media (prefers-reduced-motion:no-preference){.sheet{animation:up .22s ease-out}@keyframes up{from{transform:translateY(40px);opacity:.5}}}
+.grab{width:40px;height:5px;border-radius:3px;background:var(--line);align-self:center}
+.shead{display:flex;align-items:center;justify-content:center;position:relative;min-height:36px}
+.shead b{font-size:16px}
+.close{position:absolute;right:0;border:0;background:var(--surface);border-radius:999px;padding:7px 14px;font-weight:600;cursor:pointer}
+.box{background:var(--surface);border-radius:16px;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.route{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px}
+.route .pt b{display:block;font-size:22px;font-weight:800;line-height:1.1;overflow-wrap:anywhere}
+.route .pt span{font-size:12px;color:var(--muted)}
+.route .pt:last-child{text-align:right}
+.oprow{display:flex;align-items:center;gap:10px;border-top:1px solid var(--line);padding-top:10px}
+.oprow b{display:block}
+.oprow span{font-size:12.5px;color:var(--muted)}
+.qtitle{font-weight:800;font-size:16px}
+.opt{display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid var(--line);border-radius:12px;padding:12px 14px;cursor:pointer;background:var(--surface);width:100%;font-weight:600;text-align:left}
+.opt[aria-checked="true"]{border-color:var(--ship);background:color-mix(in srgb,var(--ship) 10%,var(--surface))}
+.opt .rad{width:20px;height:20px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center}
+.opt[aria-checked="true"] .rad{border-color:var(--ship);background:var(--ship)}
+.opt[aria-checked="true"] .rad::after{content:"";width:6px;height:6px;border-radius:50%;background:var(--surface)}
+.stepper{display:flex;align-items:center;justify-content:space-between;font-size:14px;color:var(--muted)}
+.stepper div{display:flex;align-items:center;gap:12px}
+.stepper button{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:var(--surface);font-size:18px;cursor:pointer}
+.stepper output{font-family:var(--f-mono);font-weight:700;color:var(--ink);min-width:16px;text-align:center}
+.cta{display:flex;align-items:center;justify-content:space-between;background:var(--ship);color:#fff;text-decoration:none;font-weight:700;border-radius:14px;padding:15px 18px;font-size:15.5px}
+.cta.off{background:var(--soft);color:var(--muted);pointer-events:none}
+.fine{font-size:12px;color:var(--muted);text-align:center}
+.citylist{display:flex;flex-direction:column;gap:6px}
+.cityopt{display:flex;align-items:center;justify-content:space-between;border:0;background:var(--surface);border-radius:12px;padding:12px 14px;cursor:pointer;font-weight:600;width:100%;text-align:left}
+.cityopt small{font-family:var(--f-mono);color:var(--muted);font-weight:500}
+.cityopt[aria-current="true"]{outline:2px solid var(--ship)}
+.cityopt .mds{display:flex;gap:4px;align-items:center}
+.keyrow{display:flex;flex-direction:column;gap:8px}
+.keyrow input{font:inherit;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+.keyrow button{border:0;background:var(--ink);color:var(--surface);border-radius:10px;padding:11px;font-weight:700;cursor:pointer}
+.srcrow{display:flex;justify-content:space-between;font-size:14px;padding:6px 0;border-top:1px solid var(--line)}
+.srcrow:first-child{border-top:0}
+</style>
+
+<div class="app">
+  <div class="top">
+    <div class="toprow">
+      <div class="word"><svg viewBox="0 0 100 100" width="28" height="28" aria-hidden="true"><path d="M58 38 V15" stroke="#2FBF7F" stroke-width="12" stroke-linecap="round" fill="none" transform="rotate(0 50 50)"/><path d="M58 38 V15" stroke="#3D7DF0" stroke-width="12" stroke-linecap="round" fill="none" transform="rotate(90 50 50)"/><path d="M58 38 V15" stroke="#F07F3C" stroke-width="12" stroke-linecap="round" fill="none" transform="rotate(180 50 50)"/><path d="M58 38 V15" stroke="#9B5BF0" stroke-width="12" stroke-linecap="round" fill="none" transform="rotate(270 50 50)"/><circle cx="50" cy="50" r="7.5" fill="currentColor"/></svg>kulku</div>
+      <div class="tools">
+        <button class="iconbtn" id="btn-refresh" aria-label="Päivitä"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg></button>
+        <button class="iconbtn" id="btn-settings" aria-label="Asetukset ja tietolähteet"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button>
+      </div>
+    </div>
+    <label class="search">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="color:var(--muted)"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+      <input id="q" type="search" placeholder="Kohde, linja, lento, juna tai laiva" autocomplete="off" aria-label="Hae">
+      <button class="x" id="qclear" aria-label="Tyhjennä haku" hidden>✕</button>
+    </label>
+  </div>
+
+  <section class="hero" id="hero">
+    <canvas id="h-map" aria-hidden="true"></canvas>
+    <div>
+      <div class="clock" id="h-clock"></div>
+      <h1 id="h-city">Helsinki</h1>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div class="stats" id="h-stats"></div>
+      <button class="citypill" id="btn-city"><svg class="ico" viewBox="0 0 24 24" fill="currentColor"><path d="M3 11 21 3l-8 18-2-8-8-2z"/></svg><span id="h-pill">Helsinki</span> <small id="h-pillcode"></small><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m7 10 5 5 5-5"/></svg></button>
+    </div>
+  </section>
+
+  <div class="banner" id="banner" hidden></div>
+
+  <section class="sec">
+    <h2 id="rail-title">Minne pääsee?</h2>
+    <div class="rail" id="rail"></div>
+  </section>
+
+  <section class="sec" id="listsec">
+    <div class="sechead">
+      <h2 id="list-title">Lähtevät</h2>
+      <div class="seg" role="group" aria-label="Suunta">
+        <button id="d-dep" aria-pressed="true">Lähtevät</button>
+        <button id="d-arr" aria-pressed="false">Saapuvat</button>
+      </div>
+    </div>
+    <div class="controls">
+      <div class="scroller" role="group" aria-label="Päivä">
+        <button class="pill" id="day-today" aria-pressed="true">Tänään</button>
+        <button class="pill" id="day-tomorrow" aria-pressed="false">Huomenna</button>
+        <button class="pill" id="day-pick" aria-pressed="false"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg><span id="day-pick-label">Valitse päivä</span></button>
+        <input type="date" id="daypicker" aria-label="Valitse päivä" hidden>
+      </div>
+      <div class="scroller" id="modes" role="group" aria-label="Kulkumuoto"></div>
+    </div>
+    <div class="list" id="list" aria-live="polite"></div>
+  </section>
+
+  <footer>Junat ja laivat: Fintraffic / digitraffic.fi (CC BY 4.0) · Bussit: Digitransit · Lennot: Finavia<br>Laivojen ajat ovat agenttien ilmoittamia arvioita.</footer>
+</div>
+
+<div id="sheet-root"></div>
+
+<script>
+const ICONS={
+ train:'<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 16V7h12.5c3 0 5.5 2.6 7.5 9z"/><path d="M2 11h16.5M6 7v4M10 7v4"/><path d="M1 20h22M5 16v4M17 16v4"/></svg>',
+ bus:'<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2.5" width="14" height="16" rx="3"/><path d="M5 10.5h14M9 5.5h6M2.5 6v4M21.5 6v4M8 18.5v2.5M16 18.5v2.5"/><circle cx="8.5" cy="14.5" r="1" fill="currentColor"/><circle cx="15.5" cy="14.5" r="1" fill="currentColor"/></svg>',
+ flight:'<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 13.5 3 11l1.5-1.5 7.5.5 4.5-5c1-1 2.5-1.2 3.2-.5s.5 2.2-.5 3.2l-5 4.5.5 7.5L13 21l-2.5-7.5z"/><path d="m6 17 2-2M4 20h4"/></svg>',
+ ship:'<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 15l2 5h14l2-5-9-3-9 3z"/><path d="M6 13.5V8h12v5.5M10 8V4h4v4"/></svg>'
+};
+const MODE_FI={train:'Juna',bus:'Bussi',ship:'Laiva',flight:'Lento'};
+const MODE_PL={train:'Junat',bus:'Bussit',ship:'Laivat',flight:'Lennot'};
+const MODES=['train','bus','ship','flight'];
+const hasMode=(c,m)=>m==='ship'?!!c.port:m==='flight'?!!c.apt:true;
+const CITIES=[
+ {n:'Helsinki',ela:'Helsingistä',ill:'Helsinkiin',st:'HKI',apt:'HEL',port:'FIHEL',lat:60.1712,lon:24.9415,r:'hsl',h:190},
+ {n:'Turku',ela:'Turusta',ill:'Turkuun',st:'TKU',apt:'TKU',port:'FITKU',lat:60.4536,lon:22.2531,r:'waltti',h:12},
+ {n:'Tampere',ela:'Tampereelta',ill:'Tampereelle',st:'TPE',apt:'TMP',port:null,lat:61.4986,lon:23.7730,r:'waltti',h:340},
+ {n:'Oulu',ela:'Oulusta',ill:'Ouluun',st:'OL',apt:'OUL',port:'FIOUL',lat:65.0110,lon:25.4836,r:'waltti',h:205},
+ {n:'Vaasa',ela:'Vaasasta',ill:'Vaasaan',st:'VS',apt:'VAA',port:'FIVAA',lat:63.0956,lon:21.6187,r:'waltti',h:160},
+ {n:'Kemi',ela:'Kemistä',ill:'Kemiin',st:'KEM',apt:'KEM',port:'FIKEM',lat:65.7350,lon:24.5640,r:'waltti',h:225},
+ {n:'Kokkola',ela:'Kokkolasta',ill:'Kokkolaan',st:'KOK',apt:'KOK',port:'FIKOK',lat:63.8352,lon:23.1255,r:'waltti',h:28},
+ {n:'Kotka',ela:'Kotkasta',ill:'Kotkaan',st:'KTA',apt:null,port:'FIKTK',lat:60.4670,lon:26.9390,r:'waltti',h:175},
+ {n:'Hanko',ela:'Hangosta',ill:'Hankoon',st:'HNK',apt:null,port:'FIHKO',lat:59.8239,lon:22.9690,r:'finland',h:198},
+ {n:'Pori',ela:'Porista',ill:'Poriin',st:'PRI',apt:'POR',port:'FIPOR',lat:61.4815,lon:21.7850,r:'waltti',h:45},
+ {n:'Jyväskylä',ela:'Jyväskylästä',ill:'Jyväskylään',st:'JY',apt:'JYV',port:null,lat:62.2410,lon:25.7520,r:'waltti',h:140},
+ {n:'Kuopio',ela:'Kuopiosta',ill:'Kuopioon',st:'KUO',apt:'KUO',port:null,lat:62.8965,lon:27.6790,r:'waltti',h:265},
+ {n:'Joensuu',ela:'Joensuusta',ill:'Joensuuhun',st:'JNS',apt:'JOE',port:null,lat:62.6005,lon:29.7590,r:'waltti',h:110},
+ {n:'Lahti',ela:'Lahdesta',ill:'Lahteen',st:'LH',apt:null,port:null,lat:60.9830,lon:25.6560,r:'waltti',h:300},
+ {n:'Rovaniemi',ela:'Rovaniemeltä',ill:'Rovaniemelle',st:'ROI',apt:'RVN',port:null,lat:66.4990,lon:25.7130,r:'waltti',h:250}
+];
+const PORTS={EETLL:'Tallinna',SESTO:'Tukholma',SEKPS:'Kapellskär',DETRV:'Travemünde',DEROK:'Rostock',DELBC:'Lyypekki',SEUME:'Uumaja',FIMHQ:'Maarianhamina',SEGRH:'Grisslehamn',PLGDY:'Gdynia',FIHEL:'Helsinki',FITKU:'Turku',FIVAA:'Vaasa',FIOUL:'Oulu',FIKEM:'Kemi',FIKOK:'Kokkola',FIKTK:'Kotka',FIHKO:'Hanko',FIPOR:'Pori',SELLA:'Luulaja',RULED:'Pietari',NLRTM:'Rotterdam',DEHAM:'Hampuri',BEANR:'Antwerpen',GBHUL:'Hull'};
+const flag=cc=>cc&&/^[A-Z]{2}$/.test(cc)?String.fromCodePoint(...[...cc].map(c=>127397+c.charCodeAt(0))):'';
+
+const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+const TZ='Europe/Helsinki';
+const dayKey=d=>new Date(d).toLocaleDateString('sv-SE',{timeZone:TZ});
+const todayKey=()=>dayKey(Date.now());
+const addDays=(key,n)=>{const d=new Date(key+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10)};
+function helAt(key,h){const g=Date.parse(`${key}T${String(h).padStart(2,'0')}:00:00Z`);
+  const shown=Date.parse(new Date(g).toLocaleString('sv-SE',{timeZone:TZ}).replace(' ','T')+'Z');return g-(shown-g)}
+const state={city:store.get('lahto.city')||'HKI',date:todayKey(),dir:'dep',mode:'all',q:'',items:[],status:{},key:store.get('lahto.dtkey')||'',fid:store.get('lahto.fid')||'',proxy:store.get('lahto.proxy')||'',fkey:store.get('lahto.fkey')||'',limit:30};
+const isToday=()=>state.date===todayKey();
+/* Välipalvelin: asetuksissa annettu osoite, tai sama palvelin kun sovellus ajetaan omalta verkkotunnukseltaan (esim. kulku.app). null = ei välipalvelinta. */
+function proxyBase(){if(state.proxy)return state.proxy.replace(/\/+$/,'');if(/^https?:$/.test(location.protocol)&&!/claude|localhost|127\.0\.0\.1/.test(location.hostname))return '';return null}
+function inDay(d,backMin){const t=new Date(d).getTime();if(dayKey(t)!==state.date)return false;return isToday()?t>=Date.now()-backMin*60e3:true}
+const dayShort=key=>new Date(key+'T12:00:00Z').toLocaleDateString('fi-FI',{weekday:'short',day:'numeric',month:'numeric',timeZone:'UTC'});
+const dayLong=key=>new Date(key+'T12:00:00Z').toLocaleDateString('fi-FI',{weekday:'long',day:'numeric',month:'long',timeZone:'UTC'});
+const $=id=>document.getElementById(id);
+const fmt=d=>d.toLocaleTimeString('fi-FI',{hour:'2-digit',minute:'2-digit',timeZone:TZ});
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const city=()=>CITIES.find(c=>c.st===state.city)||CITIES[0];
+const hueOf=s=>[...s].reduce((a,c)=>(a*31+c.charCodeAt(0))%360,7);
+
+async function getJSON(url,opts={}){
+  const c=new AbortController();const to=setTimeout(()=>c.abort(),9000);
+  try{const r=await fetch(url,{...opts,signal:c.signal});if(!r.ok)throw new Error('HTTP '+r.status);return await r.json()}
+  finally{clearTimeout(to)}
+}
+
+/* ---------- Junat ---------- */
+let stationNames=null;
+async function stations(){
+  if(stationNames)return stationNames;
+  const j=await getJSON('https://rata.digitraffic.fi/api/v1/metadata/stations');
+  stationNames={};j.forEach(s=>stationNames[s.stationShortCode]=s.stationName.replace(/ asema$/,'').replace(/_/g,' '));
+  return stationNames;
+}
+async function liveTrains(c){
+  const url=isToday()
+    ?`https://rata.digitraffic.fi/api/v1/live-trains/station/${c.st}?arrived_trains=0&arriving_trains=60&departed_trains=0&departing_trains=60&include_nonstopping=false`
+    :`https://rata.digitraffic.fi/api/v1/trains/${state.date}`;
+  const [names,trains]=await Promise.all([stations(),getJSON(url)]);
+  const out=[];
+  for(const t of trains){
+    if(!['Long-distance','Commuter'].includes(t.trainCategory))continue;
+    const rows=t.timeTableRows||[];
+    for(const type of ['DEPARTURE','ARRIVAL']){
+      const r=rows.find(x=>x.stationShortCode===c.st&&x.type===type&&x.trainStopping!==false&&x.commercialStop!==false);
+      if(!r)continue;
+      const dir=type==='DEPARTURE'?'dep':'arr';
+      const other=dir==='dep'?rows[rows.length-1].stationShortCode:rows[0].stationShortCode;
+      if(other===c.st)continue;
+      const sched=new Date(r.scheduledTime);
+      const est=r.actualTime?new Date(r.actualTime):(r.liveEstimateTime?new Date(r.liveEstimateTime):null);
+      if(!inDay(sched,10))continue;
+      out.push({mode:'train',dir,sched,est,done:!!r.actualTime,cx:!!(r.cancelled||t.cancelled),
+        line:t.commuterLineID?`${t.commuterLineID}-juna`:`${t.trainType} ${t.trainNumber}`,place:names[other]||other,code:other,
+        where:r.commercialTrack?['Raide',r.commercialTrack]:null,op:'VR'});
+    }
+  }
+  return out;
+}
+/* ---------- Laivat ---------- */
+function shipOp(name){const n=(name||'').toLowerCase();
+  if(/viking/.test(n))return 'Viking Line';
+  if(/silja|megastar|baltic princess|baltic queen|victoria|star|galaxy/.test(n))return 'Tallink Silja';
+  if(/finn(lady|maid|star|swan|sirius|carrier|sea|mill|polaris)/.test(n))return 'Finnlines';
+  if(/aurora botnia/.test(n))return 'Wasaline';
+  if(/finlandia|eckerö/.test(n))return 'Eckerö Line';
+  return null}
+async function liveShips(c){
+  const j=await getJSON(`https://meri.digitraffic.fi/api/port-call/v1/port-calls?locode=${c.port}`);
+  const list=Array.isArray(j)?j:(j.portCalls||[]);const out=[];const seen=new Set();
+  for(const pc of list){
+    for(const d of (pc.portAreaDetails||[])){
+      for(const dir of ['arr','dep']){
+        const s=dir==='arr'?(d.eta||d.etaTimestamp):(d.etd||d.etdTimestamp);
+        const a=dir==='arr'?(d.ata||d.ataTimestamp):(d.atd||d.atdTimestamp);
+        const base=a||s;if(!base)continue;
+        const key=pc.portCallId+dir;if(seen.has(key))continue;
+        if(!inDay(base,120))continue;seen.add(key);
+        const p=dir==='dep'?pc.nextPort:pc.prevPort;
+        const pass=pc.vesselTypeCode>=60&&pc.vesselTypeCode<=69;
+        out.push({mode:'ship',dir,sched:new Date(s||a),est:a?new Date(a):null,done:!!a,cx:false,
+          line:pc.vesselName||'Alus',place:PORTS[p]||p||'—',code:p,cc:p?p.slice(0,2):'',
+          where:d.berthName?['Laituri',d.berthName]:(d.portAreaName?['Alue',d.portAreaName]:null),
+          op:shipOp(pc.vesselName)||(pass?'Matkustaja-alus':'Rahtialus'),passenger:pass||!!shipOp(pc.vesselName),ship:true});
+      }
+    }
+  }
+  return out;
+}
+/* ---------- Bussit ---------- */
+async function liveBuses(c){
+  const pb=proxyBase();
+  if(!state.key&&pb===null)throw new Error('nokey');
+  const start=isToday()?Math.floor(Date.now()/1000):Math.floor(helAt(state.date,5)/1000);
+  const q=`{stopsByRadius(lat:${c.lat},lon:${c.lon},radius:700,first:25){edges{node{distance stop{name code platformCode stoptimesWithoutPatterns(startTime:${start},timeRange:86400,numberOfDepartures:8){scheduledDeparture realtimeDeparture realtime serviceDay headsign trip{route{shortName mode agency{name}}}}}}}}}`;
+  let j=null;
+  if(pb!==null){try{j=await getJSON(`${pb}/api/digitransit?router=${c.r}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query:q})})}catch(e){if(!state.key)throw new Error('välipalvelin: '+e.message)}}
+  if(!j)j=await getJSON(`https://api.digitransit.fi/routing/v2/${c.r}/gtfs/v1`,{method:'POST',headers:{'Content-Type':'application/json','digitransit-subscription-key':state.key},body:JSON.stringify({query:q})});
+  const out=[];const seen=new Set();
+  for(const e of (j.data?.stopsByRadius?.edges||[])){
+    const s=e.node.stop;
+    for(const st of (s.stoptimesWithoutPatterns||[])){
+      if(st.trip?.route?.mode!=='BUS')continue;
+      const sched=new Date((st.serviceDay+st.scheduledDeparture)*1000);
+      const est=st.realtime?new Date((st.serviceDay+st.realtimeDeparture)*1000):null;
+      const k=st.trip.route.shortName+st.headsign+sched.getTime();if(seen.has(k))continue;seen.add(k);
+      if(!inDay(sched,2))continue;
+      out.push({mode:'bus',dir:'dep',sched,est,done:false,cx:false,line:'Linja '+(st.trip.route.shortName||'—'),place:st.headsign||'—',
+        where:['Pysäkki',s.name+(s.platformCode?' '+s.platformCode:'')],op:st.trip.route.agency?.name||(c.r==='hsl'?'HSL':'Waltti')});
+    }
+  }
+  return out;
+}
+
+/* ---------- Lennot: Finavia ---------- */
+const AIRLINES={AY:'Finnair',N7:'Finnair',SK:'SAS',DY:'Norwegian',D8:'Norwegian',FR:'Ryanair',BT:'airBaltic',LH:'Lufthansa',KL:'KLM',AF:'Air France',BA:'British Airways',W6:'Wizz Air',U2:'easyJet',TK:'Turkish Airlines',QR:'Qatar Airways',EK:'Emirates',LO:'LOT',OS:'Austrian',LX:'Swiss',IB:'Iberia',JL:'Japan Airlines',CA:'Air China',DL:'Delta',QS:'Smartwings',X3:'TUIfly',OR:'TUI',HV:'Transavia',VY:'Vueling',A3:'Aegean',SN:'Brussels Airlines',TP:'TAP'};
+const APTS={HEL:['Helsinki','FI'],OUL:['Oulu','FI'],RVN:['Rovaniemi','FI'],TKU:['Turku','FI'],TMP:['Tampere','FI'],VAA:['Vaasa','FI'],KEM:['Kemi-Tornio','FI'],KOK:['Kokkola','FI'],POR:['Pori','FI'],JYV:['Jyväskylä','FI'],KUO:['Kuopio','FI'],JOE:['Joensuu','FI'],KAO:['Kuusamo','FI'],KTT:['Kittilä','FI'],IVL:['Ivalo','FI'],ENF:['Enontekiö','FI'],MHQ:['Maarianhamina','FI'],
+ ARN:['Tukholma','SE'],CPH:['Kööpenhamina','DK'],OSL:['Oslo','NO'],TLL:['Tallinna','EE'],RIX:['Riika','LV'],VNO:['Vilna','LT'],AMS:['Amsterdam','NL'],FRA:['Frankfurt','DE'],MUC:['München','DE'],BER:['Berliini','DE'],LHR:['Lontoo','GB'],CDG:['Pariisi','FR'],BRU:['Bryssel','BE'],ZRH:['Zürich','CH'],VIE:['Wien','AT'],WAW:['Varsova','PL'],PRG:['Praha','CZ'],BCN:['Barcelona','ES'],MAD:['Madrid','ES'],AGP:['Málaga','ES'],ALC:['Alicante','ES'],LPA:['Gran Canaria','ES'],TFS:['Teneriffa','ES'],FCO:['Rooma','IT'],MXP:['Milano','IT'],ATH:['Ateena','GR'],IST:['Istanbul','TR'],AYT:['Antalya','TR'],DOH:['Doha','QA'],DXB:['Dubai','AE'],NRT:['Tokio','JP'],HND:['Tokio','JP'],KIX:['Osaka','JP'],ICN:['Soul','KR'],BKK:['Bangkok','TH'],SIN:['Singapore','SG'],HKG:['Hongkong','HK'],JFK:['New York','US'],ORD:['Chicago','US'],DFW:['Dallas','US'],LAX:['Los Angeles','US'],RIX:['Riika','LV'],DUB:['Dublin','IE'],GDN:['Gdańsk','PL'],KRK:['Krakova','PL'],BUD:['Budapest','HU'],SPU:['Split','HR'],DBV:['Dubrovnik','HR'],NCE:['Nizza','FR'],LIS:['Lissabon','PT']};
+const airlineOf=f=>AIRLINES[(f||'').slice(0,2)]||(f||'').slice(0,2);
+function xmlFlights(doc,dir){
+  const out=[];
+  doc.querySelectorAll('flight').forEach(f=>{const g=t=>f.querySelector(t)?.textContent?.trim()||'';
+    out.push({fltnr:g('fltnr'),sdt:g('sdt'),est:g('est_d'),act:g('act_d'),route:g('route_1'),routeName:g('route_n_fi_1')||g('route_n_1'),gate:g('gate'),belt:g('bltarea'),prt:g('prt_f')||g('prt'),prm:g('prm')})});
+  return out;
+}
+async function finaviaText(dir,apt){
+  const k=encodeURIComponent(state.fkey);const errs=[];const pb=proxyBase();
+  if(pb!==null){try{const r=await fetch(`${pb}/api/flights?dir=${dir}&apt=${apt}`);if(r.ok)return await r.text();let m='HTTP '+r.status;try{m=(await r.json()).error||m}catch(e){}errs.push('välipalvelin: '+m)}catch(e){errs.push('välipalvelin: ei yhteyttä')}
+    if(!state.fkey)throw new Error(errs.join(' · '))}
+  const hdr=Object.assign({app_key:state.fkey,'Ocp-Apim-Subscription-Key':state.fkey},state.fid?{app_id:state.fid}:{});
+  const tries=[
+    [`https://api.finavia.fi/flights/public/v0/flights/${dir}/${apt}?subscription-key=${k}`,{}],
+    [`https://api.finavia.fi/flights/public/v0/flights/${dir}/${apt}`,{headers:hdr}],
+    [`https://apigw.finavia.fi/flights/public/v0/flights/${dir}/${apt}`,{headers:hdr}]
+  ];
+  for(const [url,opt] of tries){
+    const c2=new AbortController();const to=setTimeout(()=>c2.abort(),9000);
+    try{const r=await fetch(url,{...opt,signal:c2.signal});
+      if(!r.ok){errs.push(new URL(url).host+': HTTP '+r.status);continue}
+      return await r.text();
+    }catch(e){errs.push(new URL(url).host+': '+(e.name==='AbortError'?'aikakatkaisu':'yhteys estetty (todennäköisesti CORS)'))}
+    finally{clearTimeout(to)}
+  }
+  throw new Error(errs.join(' · '));
+}
+async function liveFlights(c){
+  if(!state.fkey&&proxyBase()===null)throw new Error('nokey');
+  const out=[];
+  for(const dir of ['dep','arr']){
+    let rows;
+    {
+      const txt=await finaviaText(dir,c.apt);
+      if(txt.trim().startsWith('{')||txt.trim().startsWith('[')){const j=JSON.parse(txt);rows=(j.flights?.[dir]?.body?.flight||j.flight||[]).map(f=>({fltnr:f.fltnr,sdt:f.sdt,est:f.est_d,act:f.act_d,route:f.route_1,routeName:f.route_n_fi_1||f.route_n_1,gate:f.gate,belt:f.bltarea,prt:f.prt_f||f.prt,prm:f.prm}))}
+      else rows=xmlFlights(new DOMParser().parseFromString(txt,'application/xml'),dir);
+    }
+    for(const f of rows){
+      if(!f.sdt)continue;const sched=new Date(f.sdt);if(!inDay(sched,15))continue;
+      const ap=APTS[f.route];const cx=/CNL|peru/i.test(f.prm+' '+f.prt);
+      out.push({mode:'flight',dir,sched,est:f.act?new Date(f.act):(f.est?new Date(f.est):null),done:!!f.act,cx,
+        line:f.fltnr,place:ap?ap[0]:(f.routeName||f.route),code:f.route,cc:ap?ap[1]:'',
+        where:dir==='dep'?(f.gate?['Portti',f.gate]:null):(f.belt?['Hihna',f.belt]:null),op:airlineOf(f.fltnr),remark:f.prt});
+    }
+  }
+  return out;
+}
+
+/* ---------- Esimerkkidata ---------- */
+const SAMPLE={
+ HKI:{tr:[['IC 27','Oulu'],['S 41','Kuopio'],['IC 965','Turku'],['P-juna','Lentoasema'],['Z-juna','Lahti'],['IC 173','Tampere'],['A-juna','Leppävaara'],['R-juna','Riihimäki']],bus:[['55','Koskela'],['24','Seurasaari'],['18','Munkkivuori'],['65','Veräjälaakso']],
+      sh:[['Viking XPRS','Tallinna','EE','Länsiterminaali 2'],['Silja Serenade','Tukholma','SE','Olympiaterminaali'],['Finnlady','Travemünde','DE','Vuosaari'],['Megastar','Tallinna','EE','Länsiterminaali 2']]},
+ TKU:{tr:[['IC 966','Helsinki'],['IC 980','Tampere'],['S 140','Helsinki']],bus:[['1','Lentoasema'],['6','Naantali'],['32','Varissuo']],sh:[['Viking Glory','Tukholma','SE','Linnansatama'],['Baltic Princess','Tukholma','SE','Linnansatama']]},
+ VS:{tr:[['IC 90','Seinäjoki'],['IC 92','Helsinki']],bus:[['3','Gerby'],['9','Ristinummi']],sh:[['Aurora Botnia','Uumaja','SE','Vaskiluoto']]},
+ HNK:{tr:[['H 293','Karjaa']],bus:[['Kauko','Tammisaari']],sh:[['Finnsirius','Rostock','DE','Länsisatama']]}
+};
+const GENERIC={tr:[['IC','Helsinki'],['S','Helsinki'],['IC','Tampere'],['IC','Oulu']],bus:[['1','Keskusta'],['2','Linja-autoasema'],['5','Sairaala'],['9','Kauppatori']],sh:[['Bore Song','Lyypekki','DE','Satama'],['Thule','Luulaja','SE','Satama'],['Hollandia Seaways','Rotterdam','NL','Satama']]};
+const OVERRIDE_TR={OL:[['IC 27','Rovaniemi'],['S 43','Helsinki'],['IC 74','Kajaani'],['P 265','Kolari'],['IC 22','Helsinki']],ROI:[['IC 22','Helsinki'],['P 266','Kolari']],TPE:[['IC 27','Oulu'],['S 41','Helsinki'],['IC 980','Turku'],['IC 450','Pori']],JY:[['IC 156','Helsinki'],['IC 643','Pieksämäki']],KUO:[['S 2','Helsinki'],['IC 703','Kajaani']],JNS:[['IC 2','Helsinki'],['H 1','Nurmes']],LH:[['Z-juna','Helsinki'],['IC 2','Joensuu']]};
+
+const SAMPLE_FL={HEL:[['AY439','OUL'],['AY131','SIN'],['AY1035','TLL'],['AY069','KIX'],['SK1707','ARN'],['AY1331','AMS'],['FR2741','BER'],['AY1661','ALC'],['BT302','RIX'],['AY921','DOH'],['AY379','KUO'],['LH851','FRA']],
+ OUL:[['AY440','HEL'],['AY442','HEL'],['BT356','RIX'],['AY444','HEL'],['DY2523','ALC']],RVN:[['AY532','HEL'],['AY534','HEL'],['FR3367','LHR']],TKU:[['AY1048','HEL'],['W6 1736','GDN']],TMP:[['FR2367','BER'],['AY1054','HEL'],['BT362','RIX']],
+ VAA:[['AY312','HEL'],['SK2615','ARN']],KEM:[['AY568','HEL']],KOK:[['AY352','HEL']],POR:[['AY1192','HEL']],JYV:[['AY270','HEL']],KUO:[['AY226','HEL'],['AY228','HEL']],JOE:[['AY278','HEL']]};
+function sampleFlights(c,r,now,step){
+  const L=SAMPLE_FL[c.apt]||[['AY000','HEL']];const out=[];const n=c.apt==='HEL'?18:Math.min(6,L.length*2);
+  for(let i=0;i<n;i++){const [f,d]=L[i%L.length];const dir=i%2?'arr':'dep';const gap=c.apt==='HEL'?18:75;
+    const sched=new Date(Math.ceil((now+(i*gap+r()*20+15)*step)/(5*step))*5*step);const late=r()<.2?Math.round(5+r()*25):0;const ap=APTS[d]||[d,''];
+    out.push({mode:'flight',dir,sched,est:late?new Date(sched.getTime()+late*step):null,done:false,cx:r()<.02,line:f,place:ap[0],code:d,cc:ap[1],
+      where:dir==='dep'?['Portti',String(Math.floor(r()*40)+1)]:['Hihna',String(Math.floor(r()*8)+1)],op:airlineOf(f)})}
+  return out;
+}
+function rnd(seed){return()=>{seed=(seed*1664525+1013904223)%4294967296;return seed/4294967296}}
+function sample(c,mode){
+  const S=SAMPLE[c.st]||GENERIC;
+  const r=rnd([...c.st].reduce((a,ch)=>a+ch.charCodeAt(0),0)*97+Math.floor(Date.now()/600e3)+mode.length+Number(state.date.slice(-2))*13);
+  const out=[];const now=isToday()?Date.now():helAt(state.date,6);const step=60e3;
+  if(mode==='train'){const L=OVERRIDE_TR[c.st]||S.tr||GENERIC.tr;
+    for(let i=0;i<14;i++){const [l,p]=L[i%L.length];const dir=i%3===2?'arr':'dep';
+      const sched=new Date(Math.ceil((now+(i*16+r()*12)*step)/step/5)*5*step);const late=r()<.25?Math.round(2+r()*12):0;
+      out.push({mode:'train',dir,sched,est:late?new Date(sched.getTime()+late*step):(isToday()?sched:null),done:false,cx:r()<.03,line:l,place:p,where:['Raide',String(1+Math.floor(r()*8))],op:'VR'})}}
+  if(mode==='bus'){const L=S.bus||GENERIC.bus;
+    for(let i=0;i<14;i++){const [l,p]=L[i%L.length];const sched=new Date(Math.ceil((now+(i*7+r()*6)*step)/step)*step);const late=r()<.3?Math.round(2+r()*5):0;
+      out.push({mode:'bus',dir:'dep',sched,est:late?new Date(sched.getTime()+late*step):null,done:false,cx:false,line:'Linja '+l,place:p,where:['Pysäkki','Keskusta '+(1+Math.floor(r()*12))],op:c.r==='hsl'?'HSL':'Waltti'})}}
+  if(mode==='flight'&&c.apt)out.push(...sampleFlights(c,r,now,step));
+  if(mode==='ship'&&c.port){const L=S.sh||GENERIC.sh;
+    L.forEach(([v,p,cc,b],i)=>{['arr','dep'].forEach((dir,k)=>{const sched=new Date(Math.ceil((now+((i*150+k*90)+r()*60+20)*step)/(15*step))*15*step);
+      const op=shipOp(v);out.push({mode:'ship',dir,sched,est:null,done:false,cx:false,line:v,place:p,cc,where:['Laituri',b],op:op||'Rahtialus',passenger:!!op,ship:true})})})}
+  return out;
+}
+
+/* ---------- Haku ---------- */
+let loading=false;
+async function load(){
+  if(loading)return;loading=true;$('btn-refresh').classList.add('spin');
+  const c=city();
+  const jobs={train:liveTrains(c),bus:liveBuses(c),ship:c.port?liveShips(c):Promise.reject(new Error('none')),flight:c.apt?liveFlights(c):Promise.reject(new Error('none'))};
+  const res=await Promise.allSettled(Object.values(jobs));
+  const items=[];const status={};state.errors={};
+  Object.keys(jobs).forEach((m,i)=>{
+    const r=res[i];
+    if(r.status==='fulfilled'){items.push(...r.value);status[m]='live'}
+    else if(!hasMode(c,m))status[m]='none';
+    else{items.push(...sample(c,m));status[m]=r.reason?.message==='nokey'?'nokey':'demo';if(status[m]==='demo')state.errors[m]=r.reason?.message||String(r.reason)}
+  });
+  state.items=items.filter(x=>dayKey(x.sched)===state.date);state.status=status;state.updated=new Date();
+  loading=false;$('btn-refresh').classList.remove('spin');
+  render();
+}
+
+/* ---------- Näkymä ---------- */
+function statusOf(x){
+  const diff=x.est?Math.round((x.est-x.sched)/60e3):0;
+  if(x.cx)return ['crit','Peruttu'];
+  if(x.done)return ['mut',x.dir==='dep'?'Lähtenyt':'Saapunut'];
+  if(x.ship)return ['mut',x.dir==='dep'?'Arvioitu lähtö':'Arvioitu saapuminen'];
+  if(x.mode==='flight'&&x.remark&&!x.est)return ['mut',x.remark];
+  if(x.est&&diff>=2)return ['warn',`Myöhässä ${diff} min`];
+  if(x.est)return ['ok','Ajallaan'];
+  return ['mut','Aikataulun mukaan'];
+}
+function visible(){
+  const q=state.q.trim().toLowerCase();
+  return state.items.filter(x=>x.dir===state.dir&&(state.mode==='all'||x.mode===state.mode)&&
+    (!q||[x.place,x.line,x.op,x.code].some(v=>v&&String(v).toLowerCase().includes(q))))
+    .sort((a,b)=>(a.est||a.sched)-(b.est||b.sched));
+}
+function renderHero(){
+  const c=city();
+  $('hero').style.setProperty('--hero',`linear-gradient(155deg,hsl(${c.h} 42% 30%),hsl(${(c.h+28)%360} 48% 14%))`);
+  $('h-city').textContent=c.n;$('h-pill').textContent='Vaihda kaupunki';$('h-pillcode').textContent='';
+  heroMap.update(c,state.items);
+  $('h-clock').textContent=(isToday()?'Tänään':dayShort(state.date))+' · '+fmt(new Date())+' · '+c.st;
+  const dep=state.items.filter(x=>x.dir==='dep');
+  $('h-stats').innerHTML=MODES.filter(m=>hasMode(c,m)).map(m=>{
+    const n=dep.filter(x=>x.mode===m).length;const s=state.status[m];
+    return `<span class="stat"><span class="sic sic-${m}">${ICONS[m]}</span>${MODE_PL[m]} <b>${n}</b> <em>${s==='live'?'live':'esim.'}</em></span>`}).join('');
+}
+function renderRail(){
+  const c=city();
+  $('rail-title').textContent=state.dir==='dep'?`Minne pääsee ${c.ela}?`:`Mistä tullaan ${c.ill}?`;
+  const groups={};
+  state.items.filter(x=>x.dir===state.dir&&(state.mode==='all'||x.mode===state.mode)&&!x.done&&!x.cx).forEach(x=>{
+    const g=groups[x.place]||(groups[x.place]={place:x.place,cc:x.cc,n:0,next:null,modes:new Set()});
+    g.n++;g.modes.add(x.mode);const t=x.est||x.sched;if(!g.next||t<g.next)g.next=t});
+  const arr=Object.values(groups).sort((a,b)=>b.n-a.n||a.next-b.next).slice(0,12);
+  if(!arr.length){$('rail').innerHTML=`<div class="empty" style="flex:1">Ei yhteyksiä valitulla suodatuksella.</div>`;return}
+  $('rail').innerHTML=arr.map(g=>{const h=hueOf(g.place);
+    return `<button class="dest" data-place="${esc(g.place)}" aria-pressed="${state.q===g.place}" style="--card:linear-gradient(160deg,hsl(${h} 45% 34%),hsl(${(h+30)%360} 50% 18%))">
+      <div><div class="md">${[...g.modes].map(m=>ICONS[m]).join('')}</div><div class="nm">${g.cc&&g.cc!=='FI'?flag(g.cc)+' ':''}${esc(g.place)}</div></div>
+      <div><div class="nx">${g.n} ${g.n===1?'yhteys':'yhteyttä'} · seuraava</div><div class="nt">${fmt(g.next)}</div></div></button>`}).join('');
+}
+function renderModes(){
+  const c=city();const base=state.items.filter(x=>x.dir===state.dir);
+  $('modes').innerHTML=['all',...MODES].filter(m=>m==='all'||hasMode(c,m)).map(m=>{
+    const n=m==='all'?base.length:base.filter(x=>x.mode===m).length;
+    return `<button class="pill${m!=='all'?' m-'+m:''}" data-m="${m}" aria-pressed="${state.mode===m}">${m==='all'?'':ICONS[m]}${m==='all'?'Kaikki':MODE_PL[m]} <span class="n">${n}</span></button>`}).join('');
+}
+function cardHTML(x,i){
+  const diff=x.est?Math.round((x.est-x.sched)/60e3):0;const late=x.est&&diff>=2&&!x.cx;
+  const [cls,txt]=statusOf(x);
+  const m=Math.round(((x.est||x.sched)-Date.now())/60e3);
+  const rel=isToday()&&!x.done&&!x.cx&&m>=0&&m<60?(m===0?'nyt':`${m} min`):'';
+  return `<button class="card${x.done?' gone':''}${x.cx?' cx':''}" data-i="${i}">
+    <div class="c-time">${late?`<span class="old">${fmt(x.sched)}</span>`:''}<span class="tm${late?' late':''}">${fmt(late?x.est:x.sched)}</span><span class="ln">${esc(x.line)}</span></div>
+    <div class="c-main"><div class="c-dest"><span class="m-${x.mode}">${ICONS[x.mode]}</span><span>${x.cc&&x.cc!=='FI'?flag(x.cc)+' ':''}${esc(x.place)}</span></div>
+      <div class="c-sub">${esc(x.code&&(x.mode==='train'||x.mode==='flight')?x.code:(x.ship?x.line:MODE_FI[x.mode]))}${rel?' · '+rel:''}</div></div>
+    <div class="c-side">${x.where?`${esc(x.where[0])}<b>${esc(x.where[1])}</b>`:''}</div>
+    <div class="c-foot"><span>${esc(x.op||'')}</span><span class="status st-${cls}">${txt}</span></div></button>`;
+}
+let shown=[];
+function renderList(){
+  $('list-title').textContent=state.dir==='dep'?'Lähtevät':'Saapuvat';
+  shown=visible();
+  const head=`<div class="day"><b>${isToday()?'Tänään':state.date===addDays(todayKey(),1)?'Huomenna':dayShort(state.date)}</b><span>${dayLong(state.date)} · ${shown.length} ${state.dir==='dep'?'lähtöä':'saapumista'}</span></div>`;
+  if(!shown.length){
+    const msg=state.q?`Haulla ”${esc(state.q)}” ei löytynyt yhteyksiä.`:
+      state.dir==='arr'&&state.mode==='bus'?'Busseista näytetään vain lähdöt.':
+      state.mode==='ship'&&!isToday()?'Laivojen tiedot julkaistaan yleensä vasta muutamaa päivää etukäteen.':'Ei yhteyksiä tälle päivälle.';
+    $('list').innerHTML=head+`<div class="empty">${msg}</div>`;return}
+  $('list').innerHTML=head+shown.slice(0,state.limit).map(cardHTML).join('')+(shown.length>state.limit?`<button class="more" id="more">Näytä lisää (${shown.length-state.limit})</button>`:'');
+}
+function renderBanner(){
+  const s=state.status;const b=$('banner');
+  if(['train','ship'].some(m=>s[m]==='demo')){b.hidden=false;b.innerHTML='<b>Esimerkkidataa.</b> Tämä näkymä ei saa yhteyttä Fintrafficin rajapintoihin. Avaa sivu .html-tiedostona selaimessa, niin junat ja laivat näkyvät livenä.'}
+  else if(s.bus==='nokey'||s.flight==='nokey'){b.hidden=false;const miss=[s.bus==='nokey'&&'bussit',s.flight==='nokey'&&'lennot'].filter(Boolean).join(' ja ');b.innerHTML=`<b>Junat ja laivat ovat livenä.</b> ${miss[0].toUpperCase()+miss.slice(1)} ovat esimerkkejä, kunnes lisäät avaimen asetuksista.`}
+  else b.hidden=true;
+}
+function render(){renderHero();renderBanner();renderRail();renderModes();renderList()}
+
+
+/* ---------- Taustakartta: reitit kaupungista maailmalle ---------- */
+const GEO={Helsinki:[60.17,24.94],Turku:[60.45,22.27],Tampere:[61.50,23.77],Oulu:[65.01,25.47],Vaasa:[63.10,21.62],Kemi:[65.74,24.56],Kokkola:[63.84,23.13],Kotka:[60.47,26.94],Hanko:[59.82,22.97],Pori:[61.48,21.78],'Jyväskylä':[62.24,25.75],Kuopio:[62.89,27.68],Joensuu:[62.60,29.76],Lahti:[60.98,25.66],Rovaniemi:[66.50,25.73],
+ 'Seinäjoki':[62.79,22.84],Kajaani:[64.23,27.73],Kolari:[67.33,23.79],Lentoasema:[60.32,24.96],'Leppävaara':[60.22,24.81],'Riihimäki':[60.74,24.77],'Pieksämäki':[62.30,27.16],Nurmes:[63.54,29.14],Karjaa:[60.07,23.66],'Kemijärvi':[66.71,27.43],Kouvola:[60.87,26.70],Lappeenranta:[61.06,28.19],Mikkeli:[61.69,27.27],Savonlinna:[61.87,28.88],Iisalmi:[63.56,27.19],Ylivieska:[64.07,24.53],'Hämeenlinna':[61.00,24.46],Kerava:[60.40,25.10],Tornio:[65.85,24.15],'Kittilä':[67.70,24.85],Kuusamo:[65.97,29.19],Ivalo:[68.66,27.54],Maarianhamina:[60.10,19.94],'Kemi-Tornio':[65.78,24.58],'Tammisaari':[59.97,23.43],
+ Tallinna:[59.44,24.75],Tukholma:[59.33,18.07],'Kapellskär':[59.72,19.07],'Travemünde':[53.96,10.87],Rostock:[54.09,12.10],Lyypekki:[53.87,10.69],Uumaja:[63.83,20.26],Luulaja:[65.58,22.15],Gdynia:[54.52,18.53],Pietari:[59.94,30.31],Rotterdam:[51.92,4.48],Hampuri:[53.55,9.99],Antwerpen:[51.22,4.40],Hull:[53.74,-0.33],
+ 'Kööpenhamina':[55.68,12.57],Oslo:[59.91,10.75],Riika:[56.95,24.11],Vilna:[54.69,25.28],Amsterdam:[52.37,4.90],Frankfurt:[50.11,8.68],'München':[48.14,11.58],Berliini:[52.52,13.40],Lontoo:[51.51,-0.13],Pariisi:[48.86,2.35],Bryssel:[50.85,4.35],'Zürich':[47.37,8.54],Wien:[48.21,16.37],Varsova:[52.23,21.01],Praha:[50.08,14.44],Barcelona:[41.39,2.17],Madrid:[40.42,-3.70],'Málaga':[36.72,-4.42],Alicante:[38.35,-0.48],'Gran Canaria':[27.93,-15.39],Teneriffa:[28.29,-16.63],Rooma:[41.90,12.50],Milano:[45.46,9.19],Ateena:[37.98,23.73],Istanbul:[41.01,28.98],Antalya:[36.90,30.71],Doha:[25.29,51.53],Dubai:[25.20,55.27],Tokio:[35.68,139.69],Osaka:[34.69,135.50],Soul:[37.57,126.98],Bangkok:[13.76,100.50],Singapore:[1.35,103.82],Hongkong:[22.32,114.17],'New York':[40.71,-74.01],Chicago:[41.88,-87.63],Dallas:[32.78,-96.80],'Los Angeles':[34.05,-118.24],Dublin:[53.35,-6.26],'Gdańsk':[54.35,18.65],Krakova:[50.06,19.94],Budapest:[47.50,19.04],Split:[43.51,16.44],Dubrovnik:[42.65,18.09],Nizza:[43.70,7.27],Lissabon:[38.72,-9.14]};
+const MAPCOL={train:'94,226,160',bus:'255,176,118',ship:'143,187,255',flight:'214,180,255'};
+const heroMap=(()=>{
+  const cv=$('h-map');const ctx=cv.getContext('2d');let W=0,H=0,dpr=1,routes=[],t0=performance.now(),raf=0;
+  const still=matchMedia('(prefers-reduced-motion: reduce)');
+  const rad=x=>x*Math.PI/180;
+  function geo(a,b){const[la1,lo1]=a.map(rad),[la2,lo2]=b.map(rad);
+    const d=2*6371*Math.asin(Math.sqrt(Math.sin((la2-la1)/2)**2+Math.cos(la1)*Math.cos(la2)*Math.sin((lo2-lo1)/2)**2));
+    const br=Math.atan2(Math.sin(lo2-lo1)*Math.cos(la2),Math.cos(la1)*Math.sin(la2)-Math.sin(la1)*Math.cos(la2)*Math.cos(lo2-lo1));return[d,br]}
+  const R=()=>Math.max(W,H)*.7;
+  const rOf=d=>R()*Math.log(1+d/25)/Math.log(1+12000/25);
+  const C=()=>[W*.76,H*.34];
+  function size(){const r=cv.getBoundingClientRect();dpr=Math.min(2,devicePixelRatio||1);W=r.width;H=r.height;cv.width=W*dpr;cv.height=H*dpr;ctx.setTransform(dpr,0,0,dpr,0,0)}
+  function update(c,items){
+    const home=GEO[c.n]||[c.lat,c.lon];const seen={};
+    items.forEach(x=>{const k=x.mode+'|'+x.place;(seen[k]=seen[k]||{mode:x.mode,place:x.place,n:0,dir:x.dir}).n++});
+    routes=Object.values(seen).sort((a,b)=>b.n-a.n).slice(0,46).map((r,i)=>{
+      let d,br;const g=GEO[r.place];
+      if(g){[d,br]=geo(home,g)}else{const h=hueOf(r.place);br=rad(h);d=r.mode==='bus'?3+(h%7):r.mode==='train'?40+(h%300):300+(h%900)}
+      if(d<1)d=2;
+      return{...r,d,br,seed:(hueOf(r.place)%100)/100,speed:r.mode==='flight'?.07:r.mode==='ship'?.025:r.mode==='bus'?.09:.05}});
+    if(still.matches)draw(0);
+  }
+  function pt(r,u){const[cx,cy]=C();const L=rOf(r.d);const ex=cx+Math.sin(r.br)*L,ey=cy-Math.cos(r.br)*L;
+    const bend=r.mode==='flight'?.28:r.mode==='ship'?.14:r.mode==='bus'?0:.05;const mx=(cx+ex)/2-(ey-cy)*bend,my=(cy+ey)/2+(ex-cx)*bend;
+    const a=1-u;return[a*a*cx+2*a*u*mx+u*u*ex,a*a*cy+2*a*u*my+u*u*ey,ex,ey,mx,my]}
+  function draw(now){
+    ctx.clearRect(0,0,W,H);const[cx,cy]=C();
+    ctx.lineWidth=1;ctx.strokeStyle='rgba(255,255,255,.10)';ctx.fillStyle='rgba(255,255,255,.38)';ctx.font='500 10px "Overpass Mono",monospace';
+    [[10,'10 km'],[100,'100 km'],[1000,'1 000 km'],[8000,'8 000 km']].forEach(([d,l])=>{const r=rOf(d);ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.stroke();
+      const lx=cx+r*Math.cos(-0.5),ly=cy+r*Math.sin(-0.5);if(lx<W-40&&ly>12)ctx.fillText(l,lx+4,ly)});
+    for(const r of routes){const col=MAPCOL[r.mode];const[,,ex,ey,mx,my]=pt(r,1);
+      ctx.beginPath();ctx.moveTo(cx,cy);ctx.quadraticCurveTo(mx,my,ex,ey);
+      ctx.setLineDash(r.mode==='ship'?[5,5]:r.mode==='flight'?[1.5,5]:[]);ctx.lineCap='round';
+      ctx.lineWidth=r.mode==='flight'?1.6:Math.min(2.6,1+r.n*.15);ctx.strokeStyle=`rgba(${col},${r.mode==='bus'?.35:.5})`;ctx.stroke();ctx.setLineDash([]);
+      ctx.beginPath();ctx.arc(ex,ey,2.4,0,Math.PI*2);ctx.fillStyle=`rgba(${col},.85)`;ctx.fill();
+      const n=Math.min(3,1+Math.floor(r.n/4));
+      for(let k=0;k<n;k++){let u=((now/1000)*r.speed+r.seed+k/n)%1;if(r.dir==='arr')u=1-u;const[x,y]=pt(r,u);
+        const g=ctx.createRadialGradient(x,y,0,x,y,7);g.addColorStop(0,`rgba(${col},.95)`);g.addColorStop(1,`rgba(${col},0)`);
+        ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,7,0,Math.PI*2);ctx.fill();ctx.fillStyle='rgba(255,255,255,.95)';ctx.beginPath();ctx.arc(x,y,1.6,0,Math.PI*2);ctx.fill()}}
+    ctx.font='600 10.5px Overpass,system-ui,sans-serif';ctx.fillStyle='rgba(255,255,255,.72)';const placed=[];
+    routes.filter(r=>r.mode!=='bus').slice(0,10).forEach(r=>{const[,,ex,ey]=pt(r,1);
+      if(ex<W*.46||ex>W-64||ey<18||ey>H*.5||placed.some(([a,b])=>Math.abs(a-ex)<70&&Math.abs(b-ey)<14))return;placed.push([ex,ey]);ctx.fillText(r.place,ex+6,ey+4)});
+    const p=still.matches?0:(Math.sin(now/600)+1)/2;
+    ctx.beginPath();ctx.arc(cx,cy,10+p*10,0,Math.PI*2);ctx.fillStyle=`rgba(255,255,255,${.22-p*.18})`;ctx.fill();
+    ctx.beginPath();ctx.arc(cx,cy,5,0,Math.PI*2);ctx.fillStyle='#fff';ctx.fill();
+  }
+  function loop(now){if(!document.hidden)draw(now);raf=requestAnimationFrame(loop)}
+  size();new ResizeObserver(()=>{size();if(still.matches)draw(0)}).observe(cv);
+  if(!still.matches)raf=requestAnimationFrame(loop);
+  return{update};
+})();
+
+/* ---------- Alapaneelit ---------- */
+function openSheet(title,html,onMount){
+  const root=$('sheet-root');
+  root.innerHTML=`<div class="scrim" id="scrim"><div class="sheet" role="dialog" aria-modal="true" aria-label="${esc(title)}">
+    <div class="grab"></div><div class="shead"><b>${esc(title)}</b><button class="close" id="sheet-close">Sulje</button></div>${html}</div></div>`;
+  const close=()=>{root.innerHTML='';document.removeEventListener('keydown',esck)};
+  const esck=e=>{if(e.key==='Escape')close()};document.addEventListener('keydown',esck);
+  $('sheet-close').onclick=close;$('scrim').onclick=e=>{if(e.target.id==='scrim')close()};
+  $('sheet-close').focus();onMount&&onMount(close);
+}
+const OPLINK={'VR':'https://www.vr.fi','HSL':'https://www.hsl.fi/liput-ja-hinnat','Waltti':'https://waltti.fi','Viking Line':'https://www.vikingline.fi','Tallink Silja':'https://www.tallink.fi','Finnlines':'https://www.finnlines.com','Wasaline':'https://www.wasaline.com','Eckerö Line':'https://www.eckeroline.fi','Matkahuolto':'https://www.matkahuolto.fi','Finnair':'https://www.finnair.com','SAS':'https://www.flysas.com','Norwegian':'https://www.norwegian.com','Ryanair':'https://www.ryanair.com','airBaltic':'https://www.airbaltic.com','Lufthansa':'https://www.lufthansa.com','KLM':'https://www.klm.com','Wizz Air':'https://wizzair.com','easyJet':'https://www.easyjet.com','Turkish Airlines':'https://www.turkishairlines.com','Qatar Airways':'https://www.qatarairways.com'};
+function ticketSheet(x){
+  const c=city();
+  const home=x.mode==='flight'?c.apt:c.st;
+  const from=x.dir==='dep'?{c:home,n:c.n}:{c:x.code||'',n:x.place};
+  const to=x.dir==='dep'?{c:x.code||'',n:x.place}:{c:home,n:c.n};
+  const link=OPLINK[x.op]||(x.mode==='bus'?OPLINK['Matkahuolto']:null);
+  const bookable=!!link&&!(x.ship&&!x.passenger);
+  const t={trip:'one',who:'me',n:1};
+  const html=`
+   <div class="box">
+     <div class="route"><div class="pt"><b>${esc(from.c||from.n)}</b><span>${esc(from.n)}</span></div><span class="m-${x.mode}">${ICONS[x.mode]}</span><div class="pt"><b>${esc(to.c||to.n)}</b><span>${esc(to.n)}</span></div></div>
+     <div class="oprow"><span class="m-${x.mode}">${ICONS[x.mode]}</span><div><b>${esc(x.op||MODE_FI[x.mode])}</b><span>${esc(x.line)} · ${fmt(x.est||x.sched)} · ${dayShort(state.date)}</span></div></div>
+   </div>
+   <div class="box"><div class="qtitle">Minkälainen matka?</div>
+     <button class="opt" data-k="trip" data-v="one" role="radio" aria-checked="true">→ Vain meno<span class="rad"></span></button>
+     <button class="opt" data-k="trip" data-v="ret" role="radio" aria-checked="false">⇄ Meno-paluu<span class="rad"></span></button></div>
+   <div class="box"><div class="qtitle">Keitä matkustaa?</div>
+     <button class="opt" data-k="who" data-v="me" role="radio" aria-checked="true">Minä<span class="rad"></span></button>
+     <button class="opt" data-k="who" data-v="many" role="radio" aria-checked="false">Meitä on useampi<span class="rad"></span></button>
+     <div class="stepper"><span>Matkustajia yhteensä</span><div><button id="minus" aria-label="Vähemmän" hidden>−</button><output id="pax">1</output><button id="plus" aria-label="Enemmän" hidden>+</button></div></div></div>
+   ${bookable?`<a class="cta" href="${link}" target="_blank" rel="noopener">${x.mode==='flight'?'Jatka lentohakuun':'Jatka lippukauppaan'}: ${esc(x.op)}<span>›</span></a>`:`<span class="cta off">${x.ship?'Rahtialus, ei matkustajalippuja':'Lippukauppaa ei ole liitetty'}</span>`}
+   <div class="fine">Varauspalvelut lisätään seuraavassa vaiheessa. Nyt linkki avaa operaattorin oman lippukaupan.</div>`;
+  openSheet('Lipunhaku',html,()=>{
+    document.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{
+      t[b.dataset.k]=b.dataset.v;
+      document.querySelectorAll(`.opt[data-k="${b.dataset.k}"]`).forEach(o=>o.setAttribute('aria-checked',o===b));
+      if(b.dataset.k==='who'){t.n=t.who==='me'?1:Math.max(2,t.n);$('pax').textContent=t.n;$('minus').hidden=$('plus').hidden=t.who==='me'}
+    });
+    $('plus').onclick=()=>{t.n=Math.min(9,t.n+1);$('pax').textContent=t.n};
+    $('minus').onclick=()=>{t.n=Math.max(2,t.n-1);$('pax').textContent=t.n};
+  });
+}
+function citySheet(){
+  const html=`<div class="citylist">${CITIES.map(c=>`<button class="cityopt" data-st="${c.st}" aria-current="${c.st===state.city}"><span>${c.n} <small>${c.st}</small></span><span class="mds"><span class="m-train">${ICONS.train}</span><span class="m-bus">${ICONS.bus}</span>${c.port?`<span class="m-ship">${ICONS.ship}</span>`:''}${c.apt?`<span class="m-flight">${ICONS.flight}</span>`:''}</span></button>`).join('')}</div>`;
+  openSheet('Valitse kaupunki',html,close=>{
+    document.querySelectorAll('.cityopt').forEach(b=>b.onclick=()=>{state.city=b.dataset.st;store.set('lahto.city',state.city);state.mode='all';state.q='';$('q').value='';$('qclear').hidden=true;state.limit=30;close();window.scrollTo({top:0});load()});
+  });
+}
+function settingsSheet(){
+  const lab={live:'Live',demo:'Esimerkkidata',nokey:'Esimerkkidata, avain puuttuu',none:'Ei tässä kaupungissa'};
+  const html=`<div class="box">${MODES.map(m=>`<div class="srcrow"><span class="m-${m}" style="display:flex;gap:8px;align-items:center">${ICONS[m]}<span style="color:var(--ink)">${MODE_PL[m]}</span></span><span>${lab[state.status[m]]||'—'}</span></div>${state.errors?.[m]?`<div class="fine" style="text-align:left;color:var(--crit)">${esc(state.errors[m])}</div>`:''}`).join('')}
+    <div class="fine" style="text-align:left">Päivitetty ${state.updated?fmt(state.updated):'—'}</div></div>
+   <div class="box keyrow"><div class="qtitle">Bussien live-data</div>
+     <span class="fine" style="text-align:left">Paikallisbussien reaaliaikatiedot tulevat Digitransitista. Ilmaisen avaimen saa osoitteesta portal-api.digitransit.fi. Avain tallentuu vain tähän selaimeen.</span>
+     <input id="dtkey" type="password" autocomplete="off" placeholder="digitransit-subscription-key" value="${esc(state.key)}">
+     <div class="qtitle" style="margin-top:6px">Lentojen live-data</div>
+     <span class="fine" style="text-align:left">Lentotiedot tulevat Finavian rajapinnasta. Avaimen saa ilmaiseksi osoitteesta apiportal.finavia.fi: rekisteröidy, tilaa Flights-tuote ja kopioi Profile-sivulta Primary key. app_id täytetään vain, jos portaali antaa sellaisen.</span>
+     <input id="fid" type="text" autocomplete="off" placeholder="app_id (valinnainen)" value="${esc(state.fid)}">
+     <input id="fkey" type="password" autocomplete="off" placeholder="Primary key / app_key" value="${esc(state.fkey)}">
+     <div class="qtitle" style="margin-top:6px">Välipalvelin</div>
+     <span class="fine" style="text-align:left">Kun Kulku on julkaistu Verceliin, avaimet ovat palvelimella eikä niitä tarvitse syöttää tähän. Omalta koneelta ajaessa voit antaa palvelimen osoitteen, esimerkiksi https://kulku.app.</span>
+     <input id="proxy" type="url" autocomplete="off" placeholder="https://kulku.app" value="${esc(state.proxy)}">
+     <button id="savekey">Tallenna ja päivitä</button></div>`;
+  openSheet('Asetukset ja tietolähteet',html,close=>{$('savekey').onclick=()=>{state.key=$('dtkey').value.trim();store.set('lahto.dtkey',state.key);state.proxy=$('proxy').value.trim();store.set('lahto.proxy',state.proxy);state.fid=$('fid').value.trim();state.fkey=$('fkey').value.trim();store.set('lahto.fid',state.fid);store.set('lahto.fkey',state.fkey);close();load()}});
+}
+
+/* ---------- Ohjaimet ---------- */
+$('btn-city').onclick=citySheet;
+$('btn-settings').onclick=settingsSheet;
+$('btn-refresh').onclick=()=>load();
+$('q').addEventListener('input',e=>{state.q=e.target.value;$('qclear').hidden=!state.q;state.limit=30;renderRail();renderList()});
+$('qclear').onclick=e=>{e.preventDefault();state.q='';$('q').value='';$('qclear').hidden=true;renderRail();renderList()};
+$('rail').addEventListener('click',e=>{const b=e.target.closest('.dest');if(!b)return;
+  state.q=state.q===b.dataset.place?'':b.dataset.place;$('q').value=state.q;$('qclear').hidden=!state.q;renderRail();renderList();
+  if(state.q)$('listsec').scrollIntoView({block:'start'})});
+$('modes').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;state.mode=b.dataset.m;state.limit=30;renderRail();renderModes();renderList()});
+['dep','arr'].forEach(d=>$('d-'+d).onclick=()=>{state.dir=d;$('d-dep').setAttribute('aria-pressed',d==='dep');$('d-arr').setAttribute('aria-pressed',d==='arr');state.limit=30;render()});
+$('list').addEventListener('click',e=>{
+  if(e.target.id==='more'){state.limit+=30;renderList();return}
+  const c=e.target.closest('.card');if(c)ticketSheet(shown[+c.dataset.i])});
+function setDay(key,which){
+  state.date=key;state.limit=30;
+  [['today','day-today'],['tomorrow','day-tomorrow'],['pick','day-pick']].forEach(([w,id])=>$(id).setAttribute('aria-pressed',w===which));
+  $('day-pick-label').textContent=which==='pick'?dayShort(key):'Valitse päivä';
+  if(which!=='pick')$('daypicker').hidden=true;
+  load();
+}
+$('day-today').onclick=()=>setDay(todayKey(),'today');
+$('day-tomorrow').onclick=()=>setDay(addDays(todayKey(),1),'tomorrow');
+$('day-pick').onclick=()=>{const p=$('daypicker');p.min=todayKey();p.max=addDays(todayKey(),60);if(!p.value)p.value=addDays(todayKey(),2);
+  p.hidden=false;try{p.showPicker()}catch(e){p.focus()}};
+$('daypicker').addEventListener('change',e=>{const v=e.target.value;if(!v)return;
+  if(v===todayKey())setDay(v,'today');else if(v===addDays(todayKey(),1))setDay(v,'tomorrow');else setDay(v,'pick')});
+setInterval(()=>{$('h-clock').textContent=(isToday()?'Tänään':dayShort(state.date))+' · '+fmt(new Date())},15e3);
+setInterval(()=>{if(isToday())load()},60e3);
+renderHero();load();
+</script>
