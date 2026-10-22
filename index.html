@@ -1,3 +1,11 @@
+<!doctype html>
+<html lang="fi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0D1424">
+<meta name="description" content="Kulku – junat, bussit, laivat ja lennot kaupungeittain samassa lähtötaulussa.">
+<style>:root{padding-top:env(safe-area-inset-top,0px)}body{margin:0}[hidden]{display:none!important}</style>
 <title>Kulku</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Crect%20width%3D%22100%22%20height%3D%22100%22%20rx%3D%2224%22%20fill%3D%22%230D1424%22/%3E%3Cpath%20d%3D%22M58%2038%20V15%22%20stroke%3D%22%232FBF7F%22%20stroke-width%3D%2212%22%20stroke-linecap%3D%22round%22%20fill%3D%22none%22%20transform%3D%22rotate%280%2050%2050%29%22%20/%3E%3Cpath%20d%3D%22M58%2038%20V15%22%20stroke%3D%22%233D7DF0%22%20stroke-width%3D%2212%22%20stroke-linecap%3D%22round%22%20fill%3D%22none%22%20transform%3D%22rotate%2890%2050%2050%29%22%20/%3E%3Cpath%20d%3D%22M58%2038%20V15%22%20stroke%3D%22%23F07F3C%22%20stroke-width%3D%2212%22%20stroke-linecap%3D%22round%22%20fill%3D%22none%22%20transform%3D%22rotate%28180%2050%2050%29%22%20/%3E%3Cpath%20d%3D%22M58%2038%20V15%22%20stroke%3D%22%239B5BF0%22%20stroke-width%3D%2212%22%20stroke-linecap%3D%22round%22%20fill%3D%22none%22%20transform%3D%22rotate%28270%2050%2050%29%22%20/%3E%3Ccircle%20cx%3D%2250%22%20cy%3D%2250%22%20r%3D%227.5%22%20fill%3D%22%23fff%22/%3E%3C/svg%3E">
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -170,7 +178,32 @@ footer{font-size:12px;color:var(--muted);line-height:1.6;text-align:center}
 .keyrow button{border:0;background:var(--ink);color:var(--surface);border-radius:10px;padding:11px;font-weight:700;cursor:pointer}
 .srcrow{display:flex;justify-content:space-between;font-size:14px;padding:6px 0;border-top:1px solid var(--line)}
 .srcrow:first-child{border-top:0}
+/* tabbar, favorites, toast */
+body{padding-bottom:calc(84px + env(safe-area-inset-bottom,0px))}
+body[data-view="fav"] .v-main{display:none!important}
+body:not([data-view="fav"]) #favview{display:none}
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:35;background:color-mix(in srgb,var(--surface) 92%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--line);
+  padding:6px max(16px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.tabbar .in{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}
+.tab{border:0;background:transparent;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;font-size:11.5px;font-weight:600;color:var(--muted);cursor:pointer;min-height:48px}
+.tab .ico{width:22px;height:22px}
+.tab[aria-current="page"]{color:var(--ink)}
+.tab .badge{font-family:var(--f-mono);font-size:10px;background:var(--crit);color:#fff;border-radius:999px;padding:0 5px;margin-left:2px}
+.favbtn{display:flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--line);background:var(--surface);border-radius:14px;padding:13px;font-weight:700;cursor:pointer;width:100%}
+.favbtn[aria-pressed="true"]{border-color:var(--warn);color:var(--warn)}
+.favbtn .ico{width:20px;height:20px}
+.toggle{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:14px}
+.toggle input{width:22px;height:22px;accent-color:var(--ship)}
+.star{color:var(--warn);display:inline-flex;vertical-align:-3px;margin-right:4px}
+.star .ico{width:14px;height:14px}
+.locbtn{display:flex;align-items:center;gap:10px;border:0;background:var(--ink);color:var(--surface);border-radius:12px;padding:12px 14px;font-weight:700;cursor:pointer;width:100%}
+.toast{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:60;background:var(--ink);color:var(--surface);padding:10px 16px;border-radius:999px;font-size:13.5px;font-weight:600;max-width:90vw;box-shadow:var(--shadow)}
+.favitem{display:flex;flex-direction:column;gap:4px}
+.favmeta{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:12.5px;color:var(--muted);padding:0 6px}
+.rm{border:0;background:transparent;color:var(--crit);font-weight:700;font-size:13px;cursor:pointer;padding:10px 4px;min-height:44px}
 </style>
+</head>
+<body>
 
 <div class="app">
   <div class="top">
@@ -178,7 +211,7 @@ footer{font-size:12px;color:var(--muted);line-height:1.6;text-align:center}
       <div class="word"><svg viewBox="0 0 100 100" width="28" height="28" aria-hidden="true"><path d="M58 38 V15" stroke="#2FBF7F" stroke-width="12" stroke-linecap="round" fill="none" transform="rotate(0 50 50)"/><path d="M58 38 V15" stroke="#3D7DF0" stroke-width="12" stroke-linecap="round" fill="none" transform="rotate(90 50 50)"/><path d="M58 38 V15" stroke="#F07F3C" stroke-width="12" stroke-linecap="round" fill="none" transform="rotate(180 50 50)"/><path d="M58 38 V15" stroke="#9B5BF0" stroke-width="12" stroke-linecap="round" fill="none" transform="rotate(270 50 50)"/><circle cx="50" cy="50" r="7.5" fill="currentColor"/></svg>kulku</div>
       <div class="tools">
         <button class="iconbtn" id="btn-refresh" aria-label="Päivitä"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg></button>
-        <button class="iconbtn" id="btn-settings" aria-label="Asetukset ja tietolähteet"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button>
+        <button class="iconbtn" id="btn-settings" aria-label="Asetukset ja tietolähteet" hidden><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button>
       </div>
     </div>
     <label class="search">
@@ -188,7 +221,7 @@ footer{font-size:12px;color:var(--muted);line-height:1.6;text-align:center}
     </label>
   </div>
 
-  <section class="hero" id="hero">
+  <section class="hero v-main" id="hero">
     <canvas id="h-map" aria-hidden="true"></canvas>
     <div>
       <div class="clock" id="h-clock"></div>
@@ -200,14 +233,14 @@ footer{font-size:12px;color:var(--muted);line-height:1.6;text-align:center}
     </div>
   </section>
 
-  <div class="banner" id="banner" hidden></div>
+  <div class="banner v-main" id="banner" hidden></div>
 
-  <section class="sec">
+  <section class="sec v-main">
     <h2 id="rail-title">Minne pääsee?</h2>
     <div class="rail" id="rail"></div>
   </section>
 
-  <section class="sec" id="listsec">
+  <section class="sec v-main" id="listsec">
     <div class="sechead">
       <h2 id="list-title">Lähtevät</h2>
       <div class="seg" role="group" aria-label="Suunta">
@@ -227,10 +260,21 @@ footer{font-size:12px;color:var(--muted);line-height:1.6;text-align:center}
     <div class="list" id="list" aria-live="polite"></div>
   </section>
 
+  <section class="sec" id="favview">
+    <div class="sechead"><h2>Suosikit</h2><span class="count" id="favcount"></span></div>
+    <div class="list" id="favlist"></div>
+  </section>
+
   <footer>Junat ja laivat: Fintraffic / digitraffic.fi (CC BY 4.0) · Bussit: Digitransit · Lennot: Finavia<br>Laivojen ajat ovat agenttien ilmoittamia arvioita.</footer>
 </div>
 
 <div id="sheet-root"></div>
+<div class="toast" id="toast" role="status" hidden></div>
+<nav class="tabbar" aria-label="Päävalikko"><div class="in">
+  <button class="tab" id="tab-main" aria-current="page"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M7 9h6M7 13h10M7 17h4"/></svg>Lähdöt</button>
+  <button class="tab" id="tab-fav"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg><span>Suosikit<span class="badge" id="favbadge" hidden></span></span></button>
+  <button class="tab" id="tab-set"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>Asetukset</button>
+</div></nav>
 
 <script>
 const ICONS={
@@ -270,10 +314,12 @@ const todayKey=()=>dayKey(Date.now());
 const addDays=(key,n)=>{const d=new Date(key+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10)};
 function helAt(key,h){const g=Date.parse(`${key}T${String(h).padStart(2,'0')}:00:00Z`);
   const shown=Date.parse(new Date(g).toLocaleString('sv-SE',{timeZone:TZ}).replace(' ','T')+'Z');return g-(shown-g)}
-const state={city:store.get('lahto.city')||'HKI',date:todayKey(),dir:'dep',mode:'all',q:'',items:[],status:{},key:store.get('lahto.dtkey')||'',fid:store.get('lahto.fid')||'',proxy:store.get('lahto.proxy')||'',fkey:store.get('lahto.fkey')||'',limit:30};
+const state={city:store.get('lahto.city')||'HKI',date:todayKey(),dir:'dep',mode:'all',q:'',items:[],status:{},key:store.get('lahto.dtkey')||'',fid:store.get('lahto.fid')||'',proxy:store.get('lahto.proxy')||'',fkey:store.get('lahto.fkey')||'',limit:30,favs:(()=>{try{return JSON.parse(store.get('kulku.favs')||'[]')}catch(e){return []}})()};
 const isToday=()=>state.date===todayKey();
 /* Välipalvelin: asetuksissa annettu osoite, tai sama palvelin kun sovellus ajetaan omalta verkkotunnukseltaan (esim. kulku.app). null = ei välipalvelinta. */
-function proxyBase(){if(state.proxy)return state.proxy.replace(/\/+$/,'');if(/^https?:$/.test(location.protocol)&&!/claude|localhost|127\.0\.0\.1/.test(location.hostname))return '';return null}
+const NATIVE=!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform());
+const PLUG=n=>(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins[n])||null;
+function proxyBase(){if(state.proxy)return state.proxy.replace(/\/+$/,'');if(NATIVE)return 'https://kulku.app';if(/^https?:$/.test(location.protocol)&&!/claude|localhost|127\.0\.0\.1/.test(location.hostname))return '';return null}
 function inDay(d,backMin){const t=new Date(d).getTime();if(dayKey(t)!==state.date)return false;return isToday()?t>=Date.now()-backMin*60e3:true}
 const dayShort=key=>new Date(key+'T12:00:00Z').toLocaleDateString('fi-FI',{weekday:'short',day:'numeric',month:'numeric',timeZone:'UTC'});
 const dayLong=key=>new Date(key+'T12:00:00Z').toLocaleDateString('fi-FI',{weekday:'long',day:'numeric',month:'long',timeZone:'UTC'});
@@ -470,6 +516,10 @@ function sample(c,mode){
   return out;
 }
 
+/* ---------- Offline-välimuisti ---------- */
+function readCache(k){try{const o=JSON.parse(store.get(k)||'null');if(!o)return null;
+  o.items.forEach(x=>{x.sched=new Date(x.sched);if(x.est)x.est=new Date(x.est)});return o}catch(e){return null}}
+
 /* ---------- Haku ---------- */
 let loading=false;
 async function load(){
@@ -477,12 +527,15 @@ async function load(){
   const c=city();
   const jobs={train:liveTrains(c),bus:liveBuses(c),ship:c.port?liveShips(c):Promise.reject(new Error('none')),flight:c.apt?liveFlights(c):Promise.reject(new Error('none'))};
   const res=await Promise.allSettled(Object.values(jobs));
-  const items=[];const status={};state.errors={};
+  const items=[];const status={};state.errors={};state.cacheTime=null;
   Object.keys(jobs).forEach((m,i)=>{
     const r=res[i];
-    if(r.status==='fulfilled'){items.push(...r.value);status[m]='live'}
+    const ck=`kulku.cache.${c.st}.${state.date}.${m}`;
+    if(r.status==='fulfilled'){items.push(...r.value);status[m]='live';store.set(ck,JSON.stringify({t:Date.now(),items:r.value}))}
     else if(!hasMode(c,m))status[m]='none';
-    else{items.push(...sample(c,m));status[m]=r.reason?.message==='nokey'?'nokey':'demo';if(status[m]==='demo')state.errors[m]=r.reason?.message||String(r.reason)}
+    else{const cached=readCache(ck);
+      if(cached&&r.reason?.message!=='nokey'){items.push(...cached.items);status[m]='offline';state.cacheTime=Math.min(state.cacheTime||Infinity,cached.t)}
+      else{items.push(...sample(c,m));status[m]=r.reason?.message==='nokey'?'nokey':'demo';if(status[m]==='demo')state.errors[m]=r.reason?.message||String(r.reason)}}
   });
   state.items=items.filter(x=>dayKey(x.sched)===state.date);state.status=status;state.updated=new Date();
   loading=false;$('btn-refresh').classList.remove('spin');
@@ -515,7 +568,7 @@ function renderHero(){
   const dep=state.items.filter(x=>x.dir==='dep');
   $('h-stats').innerHTML=MODES.filter(m=>hasMode(c,m)).map(m=>{
     const n=dep.filter(x=>x.mode===m).length;const s=state.status[m];
-    return `<span class="stat"><span class="sic sic-${m}">${ICONS[m]}</span>${MODE_PL[m]} <b>${n}</b> <em>${s==='live'?'live':'esim.'}</em></span>`}).join('');
+    return `<span class="stat"><span class="sic sic-${m}">${ICONS[m]}</span>${MODE_PL[m]} <b>${n}</b> <em>${s==='live'?'live':s==='offline'?'offline':'esim.'}</em></span>`}).join('');
 }
 function renderRail(){
   const c=city();
@@ -547,7 +600,7 @@ function cardHTML(x,i){
     <div class="c-main"><div class="c-dest"><span class="m-${x.mode}">${ICONS[x.mode]}</span><span>${x.cc&&x.cc!=='FI'?flag(x.cc)+' ':''}${esc(x.place)}</span></div>
       <div class="c-sub">${esc(x.code&&(x.mode==='train'||x.mode==='flight')?x.code:(x.ship?x.line:MODE_FI[x.mode]))}${rel?' · '+rel:''}</div></div>
     <div class="c-side">${x.where?`${esc(x.where[0])}<b>${esc(x.where[1])}</b>`:''}</div>
-    <div class="c-foot"><span>${esc(x.op||'')}</span><span class="status st-${cls}">${txt}</span></div></button>`;
+    <div class="c-foot"><span>${isFav(x)?`<span class="star">${STAR}</span>`:''}${esc(x.op||'')}</span><span class="status st-${cls}">${txt}</span></div></button>`;
 }
 let shown=[];
 function renderList(){
@@ -563,7 +616,8 @@ function renderList(){
 }
 function renderBanner(){
   const s=state.status;const b=$('banner');
-  if(['train','ship'].some(m=>s[m]==='demo')){b.hidden=false;b.innerHTML='<b>Esimerkkidataa.</b> Tämä näkymä ei saa yhteyttä Fintrafficin rajapintoihin. Avaa sivu .html-tiedostona selaimessa, niin junat ja laivat näkyvät livenä.'}
+  if(Object.values(s).includes('offline')){b.hidden=false;b.innerHTML=`<b>Ei verkkoyhteyttä.</b> Näytetään viimeksi haetut tiedot${state.cacheTime?' (klo '+fmt(new Date(state.cacheTime))+')':''}. Tiedot päivittyvät, kun yhteys palaa.`}
+  else if(['train','ship'].some(m=>s[m]==='demo')){b.hidden=false;b.innerHTML='<b>Esimerkkidataa.</b> Live-tietoja ei juuri nyt saada, joten taulu näyttää malliaikatauluja.'}
   else if(s.bus==='nokey'||s.flight==='nokey'){b.hidden=false;const miss=[s.bus==='nokey'&&'bussit',s.flight==='nokey'&&'lennot'].filter(Boolean).join(' ja ');b.innerHTML=`<b>Junat ja laivat ovat livenä.</b> ${miss[0].toUpperCase()+miss.slice(1)} ovat esimerkkejä, kunnes lisäät avaimen asetuksista.`}
   else b.hidden=true;
 }
@@ -639,7 +693,7 @@ function openSheet(title,html,onMount){
 }
 const OPLINK={'VR':'https://www.vr.fi','HSL':'https://www.hsl.fi/liput-ja-hinnat','Waltti':'https://waltti.fi','Viking Line':'https://www.vikingline.fi','Tallink Silja':'https://www.tallink.fi','Finnlines':'https://www.finnlines.com','Wasaline':'https://www.wasaline.com','Eckerö Line':'https://www.eckeroline.fi','Matkahuolto':'https://www.matkahuolto.fi','Finnair':'https://www.finnair.com','SAS':'https://www.flysas.com','Norwegian':'https://www.norwegian.com','Ryanair':'https://www.ryanair.com','airBaltic':'https://www.airbaltic.com','Lufthansa':'https://www.lufthansa.com','KLM':'https://www.klm.com','Wizz Air':'https://wizzair.com','easyJet':'https://www.easyjet.com','Turkish Airlines':'https://www.turkishairlines.com','Qatar Airways':'https://www.qatarairways.com'};
 function ticketSheet(x){
-  const c=city();
+  const c=(x.city&&CITIES.find(k=>k.st===x.city))||city();
   const home=x.mode==='flight'?c.apt:c.st;
   const from=x.dir==='dep'?{c:home,n:c.n}:{c:x.code||'',n:x.place};
   const to=x.dir==='dep'?{c:x.code||'',n:x.place}:{c:home,n:c.n};
@@ -658,9 +712,15 @@ function ticketSheet(x){
      <button class="opt" data-k="who" data-v="me" role="radio" aria-checked="true">Minä<span class="rad"></span></button>
      <button class="opt" data-k="who" data-v="many" role="radio" aria-checked="false">Meitä on useampi<span class="rad"></span></button>
      <div class="stepper"><span>Matkustajia yhteensä</span><div><button id="minus" aria-label="Vähemmän" hidden>−</button><output id="pax">1</output><button id="plus" aria-label="Enemmän" hidden>+</button></div></div></div>
+   <div class="box">
+     <button class="favbtn" id="favtoggle" aria-pressed="${isFav(x)}">${STAR}<span>${isFav(x)?'Suosikeissa':'Lisää suosikkeihin'}</span></button>
+     <label class="toggle"><span>Muistuta 15 min ennen ${x.dir==='dep'?'lähtöä':'saapumista'}</span><input type="checkbox" id="remind" ${favOf(x)?.remind?'checked':''}></label>
+     ${NATIVE?'':'<span class="fine" style="text-align:left">Muistutukset toimivat Kulku-mobiilisovelluksessa.</span>'}
+   </div>
    ${bookable?`<a class="cta" href="${link}" target="_blank" rel="noopener">${x.mode==='flight'?'Jatka lentohakuun':'Jatka lippukauppaan'}: ${esc(x.op)}<span>›</span></a>`:`<span class="cta off">${x.ship?'Rahtialus, ei matkustajalippuja':'Lippukauppaa ei ole liitetty'}</span>`}
    <div class="fine">Varauspalvelut lisätään seuraavassa vaiheessa. Nyt linkki avaa operaattorin oman lippukaupan.</div>`;
   openSheet('Lipunhaku',html,()=>{
+    wireFav(x);
     document.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{
       t[b.dataset.k]=b.dataset.v;
       document.querySelectorAll(`.opt[data-k="${b.dataset.k}"]`).forEach(o=>o.setAttribute('aria-checked',o===b));
@@ -671,13 +731,14 @@ function ticketSheet(x){
   });
 }
 function citySheet(){
-  const html=`<div class="citylist">${CITIES.map(c=>`<button class="cityopt" data-st="${c.st}" aria-current="${c.st===state.city}"><span>${c.n} <small>${c.st}</small></span><span class="mds"><span class="m-train">${ICONS.train}</span><span class="m-bus">${ICONS.bus}</span>${c.port?`<span class="m-ship">${ICONS.ship}</span>`:''}${c.apt?`<span class="m-flight">${ICONS.flight}</span>`:''}</span></button>`).join('')}</div>`;
+  const html=`<button class="locbtn" id="locate"><svg class="ico" viewBox="0 0 24 24" fill="currentColor"><path d="M3 11 21 3l-8 18-2-8-8-2z"/></svg>Käytä sijaintia: lähin kaupunki</button><div class="citylist">${CITIES.map(c=>`<button class="cityopt" data-st="${c.st}" aria-current="${c.st===state.city}"><span>${c.n} <small>${c.st}</small></span><span class="mds"><span class="m-train">${ICONS.train}</span><span class="m-bus">${ICONS.bus}</span>${c.port?`<span class="m-ship">${ICONS.ship}</span>`:''}${c.apt?`<span class="m-flight">${ICONS.flight}</span>`:''}</span></button>`).join('')}</div>`;
   openSheet('Valitse kaupunki',html,close=>{
+    $('locate').onclick=()=>{close();locate(true)};
     document.querySelectorAll('.cityopt').forEach(b=>b.onclick=()=>{state.city=b.dataset.st;store.set('lahto.city',state.city);state.mode='all';state.q='';$('q').value='';$('qclear').hidden=true;state.limit=30;close();window.scrollTo({top:0});load()});
   });
 }
 function settingsSheet(){
-  const lab={live:'Live',demo:'Esimerkkidata',nokey:'Esimerkkidata, avain puuttuu',none:'Ei tässä kaupungissa'};
+  const lab={live:'Live',demo:'Esimerkkidata',nokey:'Esimerkkidata, avain puuttuu',none:'Ei tässä kaupungissa',offline:'Offline, tallennetut tiedot'};
   const html=`<div class="box">${MODES.map(m=>`<div class="srcrow"><span class="m-${m}" style="display:flex;gap:8px;align-items:center">${ICONS[m]}<span style="color:var(--ink)">${MODE_PL[m]}</span></span><span>${lab[state.status[m]]||'—'}</span></div>${state.errors?.[m]?`<div class="fine" style="text-align:left;color:var(--crit)">${esc(state.errors[m])}</div>`:''}`).join('')}
     <div class="fine" style="text-align:left">Päivitetty ${state.updated?fmt(state.updated):'—'}</div></div>
    <div class="box keyrow"><div class="qtitle">Bussien live-data</div>
@@ -690,11 +751,81 @@ function settingsSheet(){
      <div class="qtitle" style="margin-top:6px">Välipalvelin</div>
      <span class="fine" style="text-align:left">Kun Kulku on julkaistu Verceliin, avaimet ovat palvelimella eikä niitä tarvitse syöttää tähän. Omalta koneelta ajaessa voit antaa palvelimen osoitteen, esimerkiksi https://kulku.app.</span>
      <input id="proxy" type="url" autocomplete="off" placeholder="https://kulku.app" value="${esc(state.proxy)}">
-     <button id="savekey">Tallenna ja päivitä</button></div>`;
+     <button id="savekey">Tallenna ja päivitä</button></div>
+   <div class="fine"><a href="https://kulku.app/tietosuoja.html" target="_blank" rel="noopener">Tietosuojaseloste</a> · Kulku 1.0</div>`;
   openSheet('Asetukset ja tietolähteet',html,close=>{$('savekey').onclick=()=>{state.key=$('dtkey').value.trim();store.set('lahto.dtkey',state.key);state.proxy=$('proxy').value.trim();store.set('lahto.proxy',state.proxy);state.fid=$('fid').value.trim();state.fkey=$('fkey').value.trim();store.set('lahto.fid',state.fid);store.set('lahto.fkey',state.fkey);close();load()}});
 }
 
+/* ---------- Suosikit, muistutukset, sijainti ---------- */
+const STAR='<svg class="ico" viewBox="0 0 24 24" fill="currentColor"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>';
+const favIdOf=(x,cityCode)=>[cityCode||state.city,x.mode,x.dir,x.line,new Date(x.sched).toISOString()].join('|');
+const favOf=x=>state.favs.find(f=>f.id===(x.id||favIdOf(x)));
+const isFav=x=>!!favOf(x);
+function saveFavs(){store.set('kulku.favs',JSON.stringify(state.favs));const n=state.favs.filter(f=>new Date(f.sched)>Date.now()-3600e3).length;$('favbadge').textContent=n;$('favbadge').hidden=!n}
+function notifId(id){let h=7;for(const ch of id)h=(h*31+ch.charCodeAt(0))|0;return Math.abs(h)%2147483000}
+function toast(msg){const t=$('toast');t.textContent=msg;t.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>t.hidden=true,2600)}
+async function setReminder(f,on){
+  const LN=PLUG('LocalNotifications');f.remind=on;saveFavs();
+  if(!LN){if(on)toast('Muistutukset toimivat Kulku-mobiilisovelluksessa');return}
+  try{
+    await LN.cancel({notifications:[{id:notifId(f.id)}]});
+    if(!on)return;
+    const p=await LN.requestPermissions();if(p.display!=='granted'){toast('Salli ilmoitukset puhelimen asetuksista');f.remind=false;saveFavs();return}
+    const at=new Date(new Date(f.est||f.sched).getTime()-15*60e3);
+    if(at<=new Date()){toast('Lähtöön on alle 15 minuuttia');return}
+    await LN.schedule({notifications:[{id:notifId(f.id),title:`${MODE_FI[f.mode]} ${f.line}`,body:`${f.dir==='dep'?'Lähtee':'Saapuu'} klo ${fmt(new Date(f.est||f.sched))} · ${f.place}${f.where?' · '+f.where[0]+' '+f.where[1]:''}`,schedule:{at,allowWhileIdle:true}}]});
+    toast('Muistutus asetettu klo '+fmt(at));
+  }catch(e){toast('Muistutusta ei voitu asettaa')}
+}
+function wireFav(x){
+  const btn=$('favtoggle'),rem=$('remind');
+  btn.onclick=()=>{
+    const f=favOf(x);
+    if(f){state.favs=state.favs.filter(y=>y!==f);setReminder(f,false);rem.checked=false;toast('Poistettu suosikeista')}
+    else{state.favs.push({id:favIdOf(x),city:state.city,cityName:city().n,mode:x.mode,dir:x.dir,line:x.line,place:x.place,code:x.code||'',cc:x.cc||'',where:x.where,op:x.op,sched:new Date(x.sched).toISOString(),est:x.est?new Date(x.est).toISOString():null,remind:false});toast('Lisätty suosikkeihin')}
+    saveFavs();const on=isFav(x);btn.setAttribute('aria-pressed',on);btn.querySelector('span').textContent=on?'Suosikeissa':'Lisää suosikkeihin';renderList();
+  };
+  rem.onchange=()=>{let f=favOf(x);if(!f){btn.click();f=favOf(x)}setReminder(f,rem.checked)};
+}
+function renderFavs(){
+  const now=Date.now();
+  state.favs=state.favs.filter(f=>new Date(f.est||f.sched).getTime()>now-6*3600e3);saveFavs();
+  const live=new Map(state.items.map(x=>[favIdOf(x),x]));
+  const list=[...state.favs].sort((a,b)=>new Date(a.sched)-new Date(b.sched));
+  $('favcount').textContent=list.length?list.length+' kpl':'';
+  if(!list.length){$('favlist').innerHTML='<div class="empty">Ei suosikkeja vielä. Avaa lähtö listalta ja paina <b>Lisää suosikkeihin</b>. Mobiilisovelluksessa saat muistutuksen 15 minuuttia ennen lähtöä.</div>';return}
+  $('favlist').innerHTML=list.map((f,i)=>{
+    const x=live.get(f.id)||{...f,sched:new Date(f.sched),est:f.est?new Date(f.est):null,done:false,cx:false};
+    const html=cardHTML(x,'f'+i).replace('<span>'+esc(x.place),'<span>'+esc(x.place));
+    return `<div class="favitem">${html.replace('class="card','data-fav="'+i+'" class="card')}<div class="favmeta"><span>${esc(f.cityName)} · ${dayShort(new Date(f.sched).toLocaleDateString('sv-SE',{timeZone:TZ}))}${f.remind?' · muistutus päällä':''}</span><button class="rm" data-rm="${esc(f.id)}">Poista</button></div></div>`}).join('');
+}
+function setView(v){
+  document.body.dataset.view=v;
+  $('tab-main').setAttribute('aria-current',v==='main'?'page':'false');$('tab-fav').setAttribute('aria-current',v==='fav'?'page':'false');
+  if(v==='fav')renderFavs();window.scrollTo({top:0});
+}
+function distKm(a,b,c,d){const r=x=>x*Math.PI/180;const h=Math.sin(r(c-a)/2)**2+Math.cos(r(a))*Math.cos(r(c))*Math.sin(r(d-b)/2)**2;return 12742*Math.asin(Math.sqrt(h))}
+async function locate(manual){
+  try{
+    let pos;const G=PLUG('Geolocation');
+    if(G){const p=await G.requestPermissions();if(p.location==='denied')throw new Error('denied');pos=await G.getCurrentPosition({enableHighAccuracy:false,timeout:12000})}
+    else pos=await new Promise((res,rej)=>navigator.geolocation?navigator.geolocation.getCurrentPosition(res,rej,{timeout:12000,maximumAge:600000}):rej(new Error('none')));
+    const {latitude:la,longitude:lo}=pos.coords;
+    const best=CITIES.map(c=>[distKm(la,lo,c.lat,c.lon),c]).sort((a,b)=>a[0]-b[0])[0];
+    if(best[1].st!==state.city){state.city=best[1].st;store.set('lahto.city',state.city);state.mode='all';state.q='';$('q').value='';load()}
+    toast(`Lähin kaupunki: ${best[1].n} (${Math.round(best[0])} km)`);
+  }catch(e){if(manual)toast('Sijaintia ei saatu. Valitse kaupunki listalta.')}
+}
+
 /* ---------- Ohjaimet ---------- */
+$('tab-main').onclick=()=>setView('main');
+$('tab-fav').onclick=()=>setView('fav');
+$('tab-set').onclick=()=>settingsSheet();
+$('favlist').addEventListener('click',e=>{
+  const rm=e.target.closest('[data-rm]');if(rm){const f=state.favs.find(y=>y.id===rm.dataset.rm);if(f){setReminder(f,false);state.favs=state.favs.filter(y=>y!==f);saveFavs();renderFavs();toast('Poistettu suosikeista')}return}
+  const c=e.target.closest('[data-fav]');if(c){const f=[...state.favs].sort((a,b)=>new Date(a.sched)-new Date(b.sched))[+c.dataset.fav];if(f)ticketSheet({...f,sched:new Date(f.sched),est:f.est?new Date(f.est):null,id:f.id,ship:f.mode==='ship',passenger:true})}
+});
+window.addEventListener('online',()=>load());
 $('btn-city').onclick=citySheet;
 $('btn-settings').onclick=settingsSheet;
 $('btn-refresh').onclick=()=>load();
@@ -723,5 +854,9 @@ $('daypicker').addEventListener('change',e=>{const v=e.target.value;if(!v)return
   if(v===todayKey())setDay(v,'today');else if(v===addDays(todayKey(),1))setDay(v,'tomorrow');else setDay(v,'pick')});
 setInterval(()=>{$('h-clock').textContent=(isToday()?'Tänään':dayShort(state.date))+' · '+fmt(new Date())},15e3);
 setInterval(()=>{if(isToday())load()},60e3);
-renderHero();load();
+renderHero();saveFavs();load();
+if(NATIVE&&!store.get('kulku.located')){store.set('kulku.located','1');locate(false)}
+if(NATIVE){const SB=PLUG('SplashScreen');SB&&SB.hide&&SB.hide()}
 </script>
+</body>
+</html>
