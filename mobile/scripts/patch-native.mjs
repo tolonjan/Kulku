@@ -16,10 +16,25 @@ if (fs.existsSync(plist)) {
     if (!s.includes(`<key>${key}</key>`)) s = s.replace(/<\/dict>\s*<\/plist>\s*$/, `\t<key>${key}</key>\n\t${xml}\n</dict>\n</plist>\n`);
   };
   add('NSLocationWhenInUseUsageDescription', '<string>Kulku käyttää sijaintia vain lähimmän kaupungin valitsemiseen. Sijaintia ei tallenneta.</string>');
+  add('NSLocationAlwaysAndWhenInUseUsageDescription', '<string>Kulku käyttää sijaintia vain lähimmän kaupungin valitsemiseen, kun sovellus on auki. Sijaintia ei tallenneta.</string>');
   add('ITSAppUsesNonExemptEncryption', '<false/>');
   s = s.replace(/<key>CFBundleDisplayName<\/key>\s*<string>[^<]*<\/string>/, '<key>CFBundleDisplayName</key>\n\t<string>Kulku</string>');
   fs.writeFileSync(plist, s);
   console.log('iOS Info.plist päivitetty');
+}
+
+// iOS-vähimmäisversio 15.0 (Apple vaatii huhtikuusta 2027)
+const IOS_MIN = '15.0';
+const podfile = path.join(mobile, 'ios/App/Podfile');
+if (fs.existsSync(podfile)) {
+  const s = fs.readFileSync(podfile, 'utf8').replace(/platform\s+:ios,\s*'[^']*'/, `platform :ios, '${IOS_MIN}'`);
+  fs.writeFileSync(podfile, s);
+}
+const pbx = path.join(mobile, 'ios/App/App.xcodeproj/project.pbxproj');
+if (fs.existsSync(pbx)) {
+  const s = fs.readFileSync(pbx, 'utf8').replace(/IPHONEOS_DEPLOYMENT_TARGET = [\d.]+;/g, `IPHONEOS_DEPLOYMENT_TARGET = ${IOS_MIN};`);
+  fs.writeFileSync(pbx, s);
+  console.log(`iOS-vähimmäisversio ${IOS_MIN}`);
 }
 
 // ---------- Android ----------
