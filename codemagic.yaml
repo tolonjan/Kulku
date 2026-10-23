@@ -113,7 +113,7 @@ workflows:
             xcode-project build-ipa --project App.xcodeproj --scheme App
           fi
     artifacts:
-      - build/ios/ipa/*.ipa
+      - mobile/ios/App/build/ios/ipa/*.ipa
     publishing:
       app_store_connect:
         auth: integration
