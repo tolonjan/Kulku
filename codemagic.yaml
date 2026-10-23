@@ -101,8 +101,12 @@ workflows:
       - name: Versionumero
         script: |
           cd mobile/ios/App
-          LATEST=$(app-store-connect get-latest-app-store-build-number "$APP_STORE_APPLE_ID" 2>/dev/null || echo 0)
-          agvtool new-version -all $((LATEST + 1))
+          TF=$(app-store-connect get-latest-testflight-build-number "$APP_STORE_APPLE_ID" 2>/dev/null || echo 0)
+          AS=$(app-store-connect get-latest-app-store-build-number "$APP_STORE_APPLE_ID" 2>/dev/null || echo 0)
+          N=$(( TF > AS ? TF : AS )); N=$(( N + 1 ))
+          [ "${BUILD_NUMBER:-0}" -gt "$N" ] && N=$BUILD_NUMBER
+          echo "Build-numero: $N"
+          agvtool new-version -all $N
           agvtool new-marketing-version "$APP_VERSION"
       - name: Käännä IPA
         script: |
