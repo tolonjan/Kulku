@@ -41,7 +41,7 @@ button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(-
 .m-train{color:var(--train)}.m-bus{color:var(--bus)}.m-ship{color:var(--ship)}.m-flight{color:var(--flight)}
 
 /* top */
-.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);padding-block:8px 10px;display:flex;flex-direction:column;gap:10px}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);box-shadow:-16px 0 0 var(--bg),16px 0 0 var(--bg);padding-block:8px 10px;display:flex;flex-direction:column;gap:10px}
 .toprow{display:flex;align-items:center;justify-content:space-between}
 .word{font-weight:800;font-size:21px;letter-spacing:-.03em;display:flex;align-items:center;gap:6px}
 .word i{width:9px;height:9px;border-radius:50%;background:var(--train);box-shadow:12px 0 0 var(--bus),24px 0 0 var(--ship);margin-right:26px}
@@ -304,7 +304,7 @@ const CITIES=[
  {n:'Lahti',ela:'Lahdesta',ill:'Lahteen',st:'LH',apt:null,port:null,lat:60.9830,lon:25.6560,r:'waltti',h:300},
  {n:'Rovaniemi',ela:'Rovaniemeltä',ill:'Rovaniemelle',st:'ROI',apt:'RVN',port:null,lat:66.4990,lon:25.7130,r:'waltti',h:250}
 ];
-const PORTS={EETLL:'Tallinna',SESTO:'Tukholma',SEKPS:'Kapellskär',DETRV:'Travemünde',DEROK:'Rostock',DELBC:'Lyypekki',SEUME:'Uumaja',FIMHQ:'Maarianhamina',SEGRH:'Grisslehamn',PLGDY:'Gdynia',FIHEL:'Helsinki',FITKU:'Turku',FIVAA:'Vaasa',FIOUL:'Oulu',FIKEM:'Kemi',FIKOK:'Kokkola',FIKTK:'Kotka',FIHKO:'Hanko',FIPOR:'Pori',SELLA:'Luulaja',RULED:'Pietari',NLRTM:'Rotterdam',DEHAM:'Hampuri',BEANR:'Antwerpen',GBHUL:'Hull'};
+const PORTS={EETLL:'Tallinna',SESTO:'Tukholma',SEKPS:'Kapellskär',DETRV:'Travemünde',DEROK:'Rostock',DELBC:'Lyypekki',SEUME:'Uumaja',FIMHQ:'Maarianhamina',SEGRH:'Grisslehamn',PLGDY:'Gdynia',FIHEL:'Helsinki',FITKU:'Turku',FIVAA:'Vaasa',FIOUL:'Oulu',FIKEM:'Kemi',FIKOK:'Kokkola',FIKTK:'Kotka',FIHKO:'Hanko',FIPOR:'Pori',SELLA:'Luulaja',RULED:'Pietari',NLRTM:'Rotterdam',DEHAM:'Hampuri',BEANR:'Antwerpen',GBHUL:'Hull',EEMUG:'Muuga',EEPLA:'Paldiski',SEHAD:'Holmsund',SEOXE:'Oxelösund',DEBRV:'Bremerhaven',LVRIX:'Riika',LTKLJ:'Klaipėda',PLSZZ:'Szczecin'};
 const flag=cc=>cc&&/^[A-Z]{2}$/.test(cc)?String.fromCodePoint(...[...cc].map(c=>127397+c.charCodeAt(0))):'';
 
 const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
@@ -399,6 +399,7 @@ async function liveShips(c){
   return out;
 }
 /* ---------- Bussit ---------- */
+const shortOp=n=>n?({'Helsingin seudun liikenne':'HSL','Helsingin seudun liikenne -kuntayhtymä':'HSL'}[n]||n):'';
 async function liveBuses(c){
   const pb=proxyBase();
   if(!state.key&&pb===null)throw new Error('nokey');
@@ -412,19 +413,20 @@ async function liveBuses(c){
     const s=e.node.stop;
     for(const st of (s.stoptimesWithoutPatterns||[])){
       if(st.trip?.route?.mode!=='BUS')continue;
+      if(st.headsign&&s.name&&st.headsign.split(/[ (]/)[0].toLowerCase()===s.name.split(/[ (]/)[0].toLowerCase())continue;
       const sched=new Date((st.serviceDay+st.scheduledDeparture)*1000);
       const est=st.realtime?new Date((st.serviceDay+st.realtimeDeparture)*1000):null;
       const k=st.trip.route.shortName+st.headsign+sched.getTime();if(seen.has(k))continue;seen.add(k);
       if(!inDay(sched,2))continue;
       out.push({mode:'bus',dir:'dep',sched,est,done:false,cx:false,line:'Linja '+(st.trip.route.shortName||'—'),place:st.headsign||'—',
-        where:['Pysäkki',s.name+(s.platformCode?' '+s.platformCode:'')],op:st.trip.route.agency?.name||(c.r==='hsl'?'HSL':'Waltti')});
+        where:['Pysäkki',s.name+(s.platformCode?' '+s.platformCode:'')],op:shortOp(st.trip.route.agency?.name)||(c.r==='hsl'?'HSL':'Waltti')});
     }
   }
   return out;
 }
 
 /* ---------- Lennot: Finavia ---------- */
-const AIRLINES={AY:'Finnair',N7:'Finnair',SK:'SAS',DY:'Norwegian',D8:'Norwegian',FR:'Ryanair',BT:'airBaltic',LH:'Lufthansa',KL:'KLM',AF:'Air France',BA:'British Airways',W6:'Wizz Air',U2:'easyJet',TK:'Turkish Airlines',QR:'Qatar Airways',EK:'Emirates',LO:'LOT',OS:'Austrian',LX:'Swiss',IB:'Iberia',JL:'Japan Airlines',CA:'Air China',DL:'Delta',QS:'Smartwings',X3:'TUIfly',OR:'TUI',HV:'Transavia',VY:'Vueling',A3:'Aegean',SN:'Brussels Airlines',TP:'TAP'};
+const AIRLINES={AY:'Finnair',N7:'Finnair',SK:'SAS',DY:'Norwegian',D8:'Norwegian',FR:'Ryanair',BT:'airBaltic',LH:'Lufthansa',KL:'KLM',AF:'Air France',BA:'British Airways',W6:'Wizz Air',U2:'easyJet',TK:'Turkish Airlines',QR:'Qatar Airways',EK:'Emirates',LO:'LOT',OS:'Austrian',LX:'Swiss',IB:'Iberia',JL:'Japan Airlines',CA:'Air China',DL:'Delta',QS:'Smartwings',X3:'TUIfly',OR:'TUI',HV:'Transavia',VY:'Vueling',A3:'Aegean',SN:'Brussels Airlines',TP:'TAP',VL:'Lufthansa City',CZ:'China Southern',PC:'Pegasus',MU:'China Eastern',SU:'Aeroflot',AT:'Royal Air Maroc',EW:'Eurowings',LG:'Luxair'};
 const APTS={HEL:['Helsinki','FI'],OUL:['Oulu','FI'],RVN:['Rovaniemi','FI'],TKU:['Turku','FI'],TMP:['Tampere','FI'],VAA:['Vaasa','FI'],KEM:['Kemi-Tornio','FI'],KOK:['Kokkola','FI'],POR:['Pori','FI'],JYV:['Jyväskylä','FI'],KUO:['Kuopio','FI'],JOE:['Joensuu','FI'],KAO:['Kuusamo','FI'],KTT:['Kittilä','FI'],IVL:['Ivalo','FI'],ENF:['Enontekiö','FI'],MHQ:['Maarianhamina','FI'],
  ARN:['Tukholma','SE'],CPH:['Kööpenhamina','DK'],OSL:['Oslo','NO'],TLL:['Tallinna','EE'],RIX:['Riika','LV'],VNO:['Vilna','LT'],AMS:['Amsterdam','NL'],FRA:['Frankfurt','DE'],MUC:['München','DE'],BER:['Berliini','DE'],LHR:['Lontoo','GB'],CDG:['Pariisi','FR'],BRU:['Bryssel','BE'],ZRH:['Zürich','CH'],VIE:['Wien','AT'],WAW:['Varsova','PL'],PRG:['Praha','CZ'],BCN:['Barcelona','ES'],MAD:['Madrid','ES'],AGP:['Málaga','ES'],ALC:['Alicante','ES'],LPA:['Gran Canaria','ES'],TFS:['Teneriffa','ES'],FCO:['Rooma','IT'],MXP:['Milano','IT'],ATH:['Ateena','GR'],IST:['Istanbul','TR'],AYT:['Antalya','TR'],DOH:['Doha','QA'],DXB:['Dubai','AE'],NRT:['Tokio','JP'],HND:['Tokio','JP'],KIX:['Osaka','JP'],ICN:['Soul','KR'],BKK:['Bangkok','TH'],SIN:['Singapore','SG'],HKG:['Hongkong','HK'],JFK:['New York','US'],ORD:['Chicago','US'],DFW:['Dallas','US'],LAX:['Los Angeles','US'],RIX:['Riika','LV'],DUB:['Dublin','IE'],GDN:['Gdańsk','PL'],KRK:['Krakova','PL'],BUD:['Budapest','HU'],SPU:['Split','HR'],DBV:['Dubrovnik','HR'],NCE:['Nizza','FR'],LIS:['Lissabon','PT']};
 const airlineOf=f=>AIRLINES[(f||'').slice(0,2)]||(f||'').slice(0,2);
@@ -627,7 +629,7 @@ function render(){renderHero();renderBanner();renderRail();renderModes();renderL
 /* ---------- Taustakartta: reitit kaupungista maailmalle ---------- */
 const GEO={Helsinki:[60.17,24.94],Turku:[60.45,22.27],Tampere:[61.50,23.77],Oulu:[65.01,25.47],Vaasa:[63.10,21.62],Kemi:[65.74,24.56],Kokkola:[63.84,23.13],Kotka:[60.47,26.94],Hanko:[59.82,22.97],Pori:[61.48,21.78],'Jyväskylä':[62.24,25.75],Kuopio:[62.89,27.68],Joensuu:[62.60,29.76],Lahti:[60.98,25.66],Rovaniemi:[66.50,25.73],
  'Seinäjoki':[62.79,22.84],Kajaani:[64.23,27.73],Kolari:[67.33,23.79],Lentoasema:[60.32,24.96],'Leppävaara':[60.22,24.81],'Riihimäki':[60.74,24.77],'Pieksämäki':[62.30,27.16],Nurmes:[63.54,29.14],Karjaa:[60.07,23.66],'Kemijärvi':[66.71,27.43],Kouvola:[60.87,26.70],Lappeenranta:[61.06,28.19],Mikkeli:[61.69,27.27],Savonlinna:[61.87,28.88],Iisalmi:[63.56,27.19],Ylivieska:[64.07,24.53],'Hämeenlinna':[61.00,24.46],Kerava:[60.40,25.10],Tornio:[65.85,24.15],'Kittilä':[67.70,24.85],Kuusamo:[65.97,29.19],Ivalo:[68.66,27.54],Maarianhamina:[60.10,19.94],'Kemi-Tornio':[65.78,24.58],'Tammisaari':[59.97,23.43],
- Tallinna:[59.44,24.75],Tukholma:[59.33,18.07],'Kapellskär':[59.72,19.07],'Travemünde':[53.96,10.87],Rostock:[54.09,12.10],Lyypekki:[53.87,10.69],Uumaja:[63.83,20.26],Luulaja:[65.58,22.15],Gdynia:[54.52,18.53],Pietari:[59.94,30.31],Rotterdam:[51.92,4.48],Hampuri:[53.55,9.99],Antwerpen:[51.22,4.40],Hull:[53.74,-0.33],
+ Tallinna:[59.44,24.75],Tukholma:[59.33,18.07],'Kapellskär':[59.72,19.07],'Travemünde':[53.96,10.87],Rostock:[54.09,12.10],Lyypekki:[53.87,10.69],Uumaja:[63.83,20.26],Luulaja:[65.58,22.15],Gdynia:[54.52,18.53],Pietari:[59.94,30.31],Rotterdam:[51.92,4.48],Hampuri:[53.55,9.99],Antwerpen:[51.22,4.40],Hull:[53.74,-0.33],Muuga:[59.50,25.00],Paldiski:[59.35,24.05],Bremerhaven:[53.54,8.58],'Klaipėda':[55.70,21.14],Szczecin:[53.43,14.55],
  'Kööpenhamina':[55.68,12.57],Oslo:[59.91,10.75],Riika:[56.95,24.11],Vilna:[54.69,25.28],Amsterdam:[52.37,4.90],Frankfurt:[50.11,8.68],'München':[48.14,11.58],Berliini:[52.52,13.40],Lontoo:[51.51,-0.13],Pariisi:[48.86,2.35],Bryssel:[50.85,4.35],'Zürich':[47.37,8.54],Wien:[48.21,16.37],Varsova:[52.23,21.01],Praha:[50.08,14.44],Barcelona:[41.39,2.17],Madrid:[40.42,-3.70],'Málaga':[36.72,-4.42],Alicante:[38.35,-0.48],'Gran Canaria':[27.93,-15.39],Teneriffa:[28.29,-16.63],Rooma:[41.90,12.50],Milano:[45.46,9.19],Ateena:[37.98,23.73],Istanbul:[41.01,28.98],Antalya:[36.90,30.71],Doha:[25.29,51.53],Dubai:[25.20,55.27],Tokio:[35.68,139.69],Osaka:[34.69,135.50],Soul:[37.57,126.98],Bangkok:[13.76,100.50],Singapore:[1.35,103.82],Hongkong:[22.32,114.17],'New York':[40.71,-74.01],Chicago:[41.88,-87.63],Dallas:[32.78,-96.80],'Los Angeles':[34.05,-118.24],Dublin:[53.35,-6.26],'Gdańsk':[54.35,18.65],Krakova:[50.06,19.94],Budapest:[47.50,19.04],Split:[43.51,16.44],Dubrovnik:[42.65,18.09],Nizza:[43.70,7.27],Lissabon:[38.72,-9.14]};
 const MAPCOL={train:'94,226,160',bus:'255,176,118',ship:'143,187,255',flight:'214,180,255'};
 const heroMap=(()=>{
