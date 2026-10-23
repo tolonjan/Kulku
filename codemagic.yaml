@@ -84,7 +84,7 @@ workflows:
         bundle_identifier: app.kulku
       vars:
         APP_VERSION: "1.0.0"
-        APP_STORE_APPLE_ID: "0000000000"
+        APP_STORE_APPLE_ID: "6826138633"
     scripts:
       - *install
       - *prepare_web
