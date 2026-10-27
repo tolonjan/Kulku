@@ -11,6 +11,7 @@
 <link rel="apple-touch-icon" href="/api/icon?n=icon-192">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Kulku">
+<meta name="apple-itunes-app" content="app-id=6826138633">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Crect%20width%3D%22100%22%20height%3D%22100%22%20rx%3D%2224%22%20fill%3D%22%230D1424%22/%3E%3Cpath%20d%3D%22M58%2038%20V15%22%20stroke%3D%22%232FBF7F%22%20stroke-width%3D%2212%22%20stroke-linecap%3D%22round%22%20fill%3D%22none%22%20transform%3D%22rotate%280%2050%2050%29%22%20/%3E%3Cpath%20d%3D%22M58%2038%20V15%22%20stroke%3D%22%233D7DF0%22%20stroke-width%3D%2212%22%20stroke-linecap%3D%22round%22%20fill%3D%22none%22%20transform%3D%22rotate%2890%2050%2050%29%22%20/%3E%3Cpath%20d%3D%22M58%2038%20V15%22%20stroke%3D%22%23F07F3C%22%20stroke-width%3D%2212%22%20stroke-linecap%3D%22round%22%20fill%3D%22none%22%20transform%3D%22rotate%28180%2050%2050%29%22%20/%3E%3Cpath%20d%3D%22M58%2038%20V15%22%20stroke%3D%22%239B5BF0%22%20stroke-width%3D%2212%22%20stroke-linecap%3D%22round%22%20fill%3D%22none%22%20transform%3D%22rotate%28270%2050%2050%29%22%20/%3E%3Ccircle%20cx%3D%2250%22%20cy%3D%2250%22%20r%3D%227.5%22%20fill%3D%22%23fff%22/%3E%3C/svg%3E">
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -142,6 +143,7 @@ input[type=date]{font:inherit;font-size:14px;padding:7px 10px;border-radius:999p
 .banner{background:var(--soft);border-radius:14px;padding:10px 14px;font-size:13px;color:var(--muted)}
 .banner b{color:var(--ink)}
 footer{font-size:12px;color:var(--muted);line-height:1.6;text-align:center}
+.appstore{display:inline-flex;align-items:center;gap:8px;margin:0 0 14px;padding:10px 18px;border-radius:999px;background:var(--ink);color:var(--bg);font-weight:700;font-size:14px;text-decoration:none}
 
 /* sheet */
 .scrim{position:fixed;inset:0;z-index:40;background:rgba(5,10,9,.45);display:flex;align-items:flex-end;justify-content:center}
@@ -270,7 +272,7 @@ body:not([data-view="fav"]) #favview{display:none}
     <div class="list" id="favlist"></div>
   </section>
 
-  <footer>Junat ja laivat: Fintraffic / digitraffic.fi (CC BY 4.0) · Bussit: Digitransit · Lennot: Finavia<br>Laivojen ajat ovat agenttien ilmoittamia arvioita.</footer>
+  <footer><a class="appstore" id="appstore" href="https://apps.apple.com/fi/app/id6826138633" target="_blank" rel="noopener">Lataa Kulku iPhonelle App Storesta</a><br>Junat ja laivat: Fintraffic / digitraffic.fi (CC BY 4.0) · Bussit: Digitransit · Lennot: Finavia<br>Laivojen ajat ovat agenttien ilmoittamia arvioita.</footer>
 </div>
 
 <div id="sheet-root"></div>
@@ -864,6 +866,7 @@ setInterval(()=>{if(isToday())load()},60e3);
 renderHero();saveFavs();load();
 if(NATIVE&&!store.get('kulku.located')){store.set('kulku.located','1');locate(false)}
 if(NATIVE){const SB=PLUG('SplashScreen');SB&&SB.hide&&SB.hide()}
+if(NATIVE||matchMedia('(display-mode: standalone)').matches){const a=$('appstore');a&&(a.hidden=true)}
 if(!NATIVE&&'serviceWorker' in navigator&&location.protocol==='https:'&&proxyBase()==='')navigator.serviceWorker.register('/sw.js').catch(()=>{});
 </script>
 </body>
